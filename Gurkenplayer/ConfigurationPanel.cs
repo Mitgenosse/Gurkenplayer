@@ -24,6 +24,11 @@ namespace Gurkenplayer
             testLabel.text = "Gurkenplayer";
             testLabel.eventClick += FooBarClickHandler;
         }
+
+        private void FooBarClickHandler(UIComponent component, UIMouseEventParameter eventParam)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
 //Info https://media.readthedocs.org/pdf/skylines-modding-docs/master/skylines-modding-docs.pdf

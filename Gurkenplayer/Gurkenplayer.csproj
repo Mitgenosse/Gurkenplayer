@@ -83,7 +83,7 @@
     <Content Include="notes.txt" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Managed_dlls\note.txtx" />
+    <Content Include="Managed_dlls\note.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
