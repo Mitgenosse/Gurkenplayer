@@ -13,7 +13,8 @@ namespace Gurkenplayer
 {
     public class Loading : LoadingExtensionBase
     {
-        private LoadMode loadMode;
+        LoadMode loadMode;
+        UIComponent uiComponent;
 
         /// <summary>
         /// Thread: Main
@@ -36,9 +37,9 @@ namespace Gurkenplayer
 
             loadMode = mode;
 
-            //Force stop when the game and open window (inside the ConfigurationPanel class)
-            UIView view = UIView.GetAView();
-            UIComponent uiComponent = view.AddUIComponent(typeof(ConfigurationPanel));
+            UIView v = UIView.GetAView();
+
+            uiComponent = v.AddUIComponent(typeof(ConfigurationPanel)); //Throws null error
 
             try
             {
@@ -92,7 +93,8 @@ namespace Gurkenplayer
         /// </summary>
         public override void OnReleased()
         {
-            
+            if (uiComponent != null)
+                UnityEngine.Object.Destroy(uiComponent);
         }
     }
 }

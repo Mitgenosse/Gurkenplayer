@@ -78,6 +78,7 @@
     <Content Include="Managed_dlls\Assembly-CSharp.dll" />
     <Content Include="Managed_dlls\ColossalManaged.dll" />
     <Content Include="Managed_dlls\ICities.dll" />
+    <Content Include="Managed_dlls\Lidgren.Network.dll" />
     <Content Include="Managed_dlls\UnityEngine.dll" />
     <Content Include="Managed_dlls\UnityEngine.UI.dll" />
     <Content Include="notes.txt" />

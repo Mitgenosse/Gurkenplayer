@@ -305,7 +305,7 @@ namespace Gurkenplayer
                     Log.Message("Server received 0x3000");
                     DemandExtBase._CommercialDemand = msg.ReadInt32();
                     DemandExtBase._ResidentalDemand = msg.ReadInt32();
-                    DemandExtBase._WorkplaceDemand = msg.Readint32();
+                    DemandExtBase._WorkplaceDemand = msg.ReadInt32();
                     break;
                 default:
                     Log.Warning("Server_ProgressData: Unhandled type/message: " + msg.MessageType);
