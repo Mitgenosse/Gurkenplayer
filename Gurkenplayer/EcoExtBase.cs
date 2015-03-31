@@ -11,17 +11,17 @@ namespace Gurkenplayer
 {
     public class EcoExtBase : EconomyExtensionBase
     {
-        //Felder
+        //Fields
         static long _currentMoneyAmount;
         static long _internalMoneyAmount;
-        //Eigenschaften
+        //Properties
         public static long _CurrentMoneyAmount
         {
             get { return _currentMoneyAmount; }
             set { _currentMoneyAmount = value; }
         }
         public static long _InternalMoneyAmount
-        {
+        { //The value which the game uses to calculate
             get { return _currentMoneyAmount; }
             set { _currentMoneyAmount = value; }
         }
@@ -31,7 +31,6 @@ namespace Gurkenplayer
         {
             Log.Warning("internalMoneyAmount: " + internalMoneyAmount + " abc: " + economyManager.currentMoneyAmount);
             _internalMoneyAmount = internalMoneyAmount;
-
             if (GurkenplayerMod.MPRole == MultiplayerRole.Server)
             {
                 Server.Instance.SendEconomyInformationUpdateToAll();

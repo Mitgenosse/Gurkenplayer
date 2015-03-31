@@ -1,4 +1,5 @@
-﻿using ICities;
+﻿using ColossalFramework.UI;
+using ICities;
 using Lidgren.Network;
 using System;
 using System.Collections.Generic;
@@ -35,9 +36,12 @@ namespace Gurkenplayer
 
             loadMode = mode;
 
+            //Force stop when the game and open window (inside the ConfigurationPanel class)
+            UIView view = UIView.GetAView();
+            UIComponent uiComponent = view.AddUIComponent(typeof(ConfigurationPanel));
+
             try
             {
-                SimulationManager.instance.ForcedSimulationPaused = true;
                 Log.Message("creating server instance");
                 Server server = Server.Instance;
                 server.StartServer();
@@ -45,12 +49,12 @@ namespace Gurkenplayer
                 if(Server.Instance != null)
                     Log.Message("server successfully created");
 
-                
                 Log.Message("creating client instance");
                 Client client = Client.Instance;
                 client.ConnectToServer();
                 Log.Message("Instance created");
 
+                //Starting a thread to disconnect client and close server in 15-16 seconds after launch
                 ThreadStart ts = new ThreadStart(disconnectAll);
                 Thread thread = new Thread(ts);
                 thread.Start();

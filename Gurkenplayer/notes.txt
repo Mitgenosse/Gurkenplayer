@@ -2,18 +2,18 @@
 
 COOP:
 -stuff to synchronize
-->money (current account balance, profit and loss, loan)
+->money (current account balance, profit and loss, loan)	==OK EcoExtBase.cs
 ->citizens
-->area demand
+->area demand												==OK DemandExtBase.cs
 ->buildings and streets (and removal of both)
-->current speed and time (disable speed options?)
+->current speed and time (disable speed options?)			==Half ok. Only same speed.
 ->current and bought tiles
 ->???
 
 Competitive/Independent mode
 -stuff to synchronize
 ->buildings and streets (and removal of both)
-->current speed and time
+->current speed and time									==Half ok. Only same speed.
 ->???
 
 ToDo for both:

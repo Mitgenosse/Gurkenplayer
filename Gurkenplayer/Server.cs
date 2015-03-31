@@ -296,10 +296,16 @@ namespace Gurkenplayer
         {
             switch (type)
             {
-                case 0x2000: //
+                case 0x2000: //Receiving money
                     Log.Message("Server received 0x2000");
                     EcoExtBase._CurrentMoneyAmount = msg.ReadInt64();
                     EcoExtBase._InternalMoneyAmount = msg.ReadInt64();
+                    break;
+                case 0x3000: //Receiving demand
+                    Log.Message("Server received 0x3000");
+                    DemandExtBase._CommercialDemand = msg.ReadInt32();
+                    DemandExtBase._ResidentalDemand = msg.ReadInt32();
+                    DemandExtBase._WorkplaceDemand = msg.Readint32();
                     break;
                 default:
                     Log.Warning("Server_ProgressData: Unhandled type/message: " + msg.MessageType);
@@ -317,6 +323,21 @@ namespace Gurkenplayer
                 NetOutgoingMessage msg = server.CreateMessage((int)0x2000);
                 msg.Write(EconomyManager.instance.LastCashAmount);//EcoExtBase._CurrentMoneyAmount
                 msg.Write(EconomyManager.instance.InternalCashAmount);//EcoExtBase._InternalMoneyAmount
+                server.SendToAll(msg, NetDeliveryMethod.ReliableOrdered);
+                server.FlushSendQueue();
+            }
+        }
+        /// <summary>
+        /// Sends demand update to all. (Commercial demand, residental demand, workplace demand)
+        /// </summary>
+        public void SendDemandInformationUpdateToAll()
+        {
+            if (CanSendMessage)
+            {
+                NetOutgoingMessage msg = server.CreateMessage((int)0x3000);
+                msg.Write(DemandExtBase._CommercialDemand);
+                msg.Write(DemandExtBase._ResidentalDemand);
+                msg.Write(DemandExtBase._WorkplaceDemand);
                 server.SendToAll(msg, NetDeliveryMethod.ReliableOrdered);
                 server.FlushSendQueue();
             }

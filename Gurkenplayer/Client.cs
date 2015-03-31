@@ -264,10 +264,16 @@ namespace Gurkenplayer
         {
             switch (type)
             {
-                case 0x2000:
+                case 0x2000: //Receiving money
                     Log.Message("Client received 0x2000");
                     EcoExtBase._CurrentMoneyAmount = msg.ReadInt64();
                     EcoExtBase._InternalMoneyAmount = msg.ReadInt64();
+                    break;
+                case 0x3000: //Receiving demand
+                    Log.Message("Client received 0x3000");
+                    DemandExtBase._CommercialDemand = msg.ReadInt32();
+                    DemandExtBase._ResidentalDemand = msg.ReadInt32();
+                    DemandExtBase._WorkplaceDemand = msg.ReadInt32();
                     break;
                 default: //Unbehandelte ID
                     Log.Warning("Client ProgressData: Unhandled ID/type: " + type);
@@ -275,7 +281,7 @@ namespace Gurkenplayer
             }
         }
         /// <summary>
-        /// Send the action of the client to the server to synchronize.
+        /// Send the EconomyInformation of the client to the server to synchronize.
         /// </summary>
         public void SendEconomyInformationToServer()
         {
@@ -284,6 +290,21 @@ namespace Gurkenplayer
                 NetOutgoingMessage msg = client.CreateMessage((int)0x2000);
                 msg.Write(EconomyManager.instance.LastCashAmount);//EcoExtBase._CurrentMoneyAmount
                 msg.Write(EconomyManager.instance.InternalCashAmount);//EcoExtBase._InternalMoneyAmount
+                client.SendMessage(msg, NetDeliveryMethod.ReliableOrdered);
+                client.FlushSendQueue();
+            }
+        }
+        /// <summary>
+        /// Sends the DemandInformation of the client to the server to synchronize.
+        /// </summary>
+        public void SendDemandInformationUpdateToServer()
+        {
+            if (CanSendMessage)
+            {
+                NetOutgoingMessage msg = client.CreateMessage((int)0x3000);
+                msg.Write(DemandExtBase._CommercialDemand);
+                msg.Write(DemandExtBase._ResidentalDemand);
+                msg.Write(DemandExtBase._WorkplaceDemand);
                 client.SendMessage(msg, NetDeliveryMethod.ReliableOrdered);
                 client.FlushSendQueue();
             }
