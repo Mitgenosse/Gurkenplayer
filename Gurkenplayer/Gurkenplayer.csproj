@@ -62,6 +62,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Client.cs" />
+    <Compile Include="ConfigurationPanel.cs" />
     <Compile Include="Gurkenplayer.cs" />
     <Compile Include="Loading.cs" />
     <Compile Include="Log.cs" />
@@ -71,6 +72,9 @@
     <Compile Include="Server.cs" />
     <Compile Include="EcoExtBase.cs" />
     <Compile Include="User.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="notes.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

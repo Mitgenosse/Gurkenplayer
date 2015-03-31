@@ -1,0 +1,21 @@
+﻿Coop or competitive/independent mode?
+
+COOP:
+-stuff to synchronize
+->money (current account balance, profit and loss, loan)
+->citizens
+->area demand
+->buildings and streets (and removal of both)
+->current speed and time (disable speed options?)
+->current and bought tiles
+->???
+
+Competitive/Independent mode
+-stuff to synchronize
+->buildings and streets (and removal of both)
+->current speed and time
+->???
+
+ToDo for both:
+-Create a configuration window at the start of the game
+-How to start the multiplayer session? Only new game?

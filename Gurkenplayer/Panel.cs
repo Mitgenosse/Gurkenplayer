@@ -7,7 +7,7 @@ using System.Text;
 using UnityEngine;
 
 namespace Gurkenplayer
-{
+{ //Don't mind me
     class Panel : MonoBehaviour
     {
         private UITextField textField = null;
