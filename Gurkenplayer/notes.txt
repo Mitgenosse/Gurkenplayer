@@ -25,4 +25,14 @@ ToDo for both:
 Notes:
 ICities.dll -> Official modding API
 Assembly-CSharp.dll -> Contains almost all of the gameplay related classes. (Road system, citizens, buildings, chirper, usw)
-ColossalFramework.UI -> The UI that is used by the game. Is used to create your own UI components.
+ColossalFramework.UI -> The UI that is used by the game. Is used to create your own UI component.
+
+Current procedure:
+-both start the game with the same world (must have the same mods (or even none)?)
+-on level load force stop the game
+-open window where you can create a server lobby or connect to a game. (Configuration)
+-you have to configure the amount of connections in setup
+-open server and wait till its full
+-if it is full, show a message on server with 'start game'
+-onclick remove force stop of the game
+-play
