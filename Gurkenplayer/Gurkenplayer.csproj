@@ -63,6 +63,7 @@
   <ItemGroup>
     <Compile Include="Client.cs" />
     <Compile Include="ConfigurationPanel.cs" />
+    <Compile Include="DemandExtBase.cs" />
     <Compile Include="Gurkenplayer.cs" />
     <Compile Include="Loading.cs" />
     <Compile Include="Log.cs" />

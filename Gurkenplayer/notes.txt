@@ -19,3 +19,10 @@ Competitive/Independent mode
 ToDo for both:
 -Create a configuration window at the start of the game
 -How to start the multiplayer session? Only new game?
+
+
+
+Notes:
+ICities.dll -> Official modding API
+Assembly-CSharp.dll -> Contains almost all of the gameplay related classes. (Road system, citizens, buildings, chirper, usw)
+ColossalFramework.UI -> The UI that is used by the game. Is used to create your own UI components.
