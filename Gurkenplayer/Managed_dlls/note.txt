@@ -1,3 +1,5 @@
 ﻿I have included the necessary librarys for development on the go, say when I am not on my home PC.
 
 If there is something I should know about copyright et cetera, please tell me and I will remove them.
+
+The Lidgren.Network.dll is licensed under the MIT license.

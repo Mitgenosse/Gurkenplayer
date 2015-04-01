@@ -39,7 +39,7 @@ namespace Gurkenplayer
 
             UIView v = UIView.GetAView();
 
-            uiComponent = v.AddUIComponent(typeof(ConfigurationPanel)); //Throws null error
+            uiComponent = v.AddUIComponent(typeof(ConfigurationPanel)); //Throws null error. T.T
 
             try
             {

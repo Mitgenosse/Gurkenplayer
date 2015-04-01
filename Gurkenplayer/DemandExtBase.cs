@@ -11,9 +11,9 @@ namespace Gurkenplayer
     public class DemandExtBase : DemandExtensionBase
     {
         //Fields
-        static int _commercialDemand;
-        static int _residentalDemand;
-        static int _workplaceDemand;
+        static int _commercialDemand; //Multiplayer commercial demand
+        static int _residentalDemand; //MP residental demand
+        static int _workplaceDemand; //MP workplace demand
         //Properties
         public static int _CommercialDemand
         {
@@ -32,19 +32,58 @@ namespace Gurkenplayer
         }
 
         //Methods
+        /// <summary>
+        /// Invoked when the game calculates commercial demand. Value between 0 and 100.
+        /// </summary>
+        /// <param name="originalDemand">Demand calculated by the game.</param>
+        /// <returns>Modified demand.</returns>
         public override int OnCalculateCommercialDemand(int originalDemand)
-        {
-            if (GurkenplayerMod.MPRole == MultiplayerRole.Server)
+        { 
+            if (GurkenplayerMod.MPRole == MultiplayerRole.Server) //Update all
             {
                 Server.Instance.SendDemandInformationUpdateToAll();
-                return _CommercialDemand;
+                return _commercialDemand;
             }
             else if (GurkenplayerMod.MPRole == MultiplayerRole.Client)
             {
                 Client.Instance.SendDemandInformationUpdateToServer();
-                return _CommercialDemand;
+                return _commercialDemand;
             }
-            return 1;
+            return originalDemand;
+        }
+        /// <summary>
+        /// Invoked when the game calculates residental demand. Value between 0 and 100.
+        /// </summary>
+        /// <param name="originalDemand">Demand calculated by the game.</param>
+        /// <returns>Modified demand.</returns>
+        public override int OnCalculateResidentialDemand(int originalDemand)
+        {
+            if (GurkenplayerMod.MPRole == MultiplayerRole.Server)
+            {
+                return _residentalDemand;
+            }
+            else if (GurkenplayerMod.MPRole == MultiplayerRole.Client)
+            {
+                return _residentalDemand;
+            }
+            return originalDemand;
+        }
+        /// <summary>
+        /// Invoked when the game calculates workplace demand. Value between 0 and 100.
+        /// </summary>
+        /// <param name="originalDemand">Demand calculated by the game.</param>
+        /// <returns>Modified demand.</returns>
+        public override int OnCalculateWorkplaceDemand(int originalDemand)
+        {
+            if (GurkenplayerMod.MPRole == MultiplayerRole.Server)
+            {
+                return _workplaceDemand;
+            }
+            else if (GurkenplayerMod.MPRole == MultiplayerRole.Client)
+            {
+                return _workplaceDemand;
+            }
+            return originalDemand;
         }
     }
 }

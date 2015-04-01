@@ -12,8 +12,8 @@ namespace Gurkenplayer
     public class EcoExtBase : EconomyExtensionBase
     {
         //Fields
-        static long _currentMoneyAmount;
-        static long _internalMoneyAmount;
+        static long _currentMoneyAmount; //Multiplayer current money amount.
+        static long _internalMoneyAmount; //MP internal money amount. (The value which the game uses for calculations)
         //Properties
         public static long _CurrentMoneyAmount
         {
@@ -27,6 +27,12 @@ namespace Gurkenplayer
         }
 
         //Override
+        /// <summary>
+        /// Invoked once every four seconds with the simulation set to normal speed. 
+        /// Triggers every time the Economy Manager updates the current money amount.
+        /// </summary>
+        /// <param name="internalMoneyAmount">Current money amount calculated by the game.</param>
+        /// <returns>The current money amount.</returns>
         public override long OnUpdateMoneyAmount(long internalMoneyAmount)
         {
             Log.Warning("internalMoneyAmount: " + internalMoneyAmount + " abc: " + economyManager.currentMoneyAmount);
@@ -40,9 +46,10 @@ namespace Gurkenplayer
             {
                 Client.Instance.SendEconomyInformationToServer();
                 return _internalMoneyAmount;
+                
             }
             Log.Warning("internalMoneyAmount: " + internalMoneyAmount + " abc: " + economyManager.currentMoneyAmount);
-            return _internalMoneyAmount;
+            return internalMoneyAmount; //If user is not server or client, he should not be connected. Return original value
         }
     }
 }
