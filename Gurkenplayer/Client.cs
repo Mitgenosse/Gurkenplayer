@@ -6,6 +6,10 @@ using System.Text;
 using Lidgren.Network;
 using System.Threading;
 
+using ICities;
+using UnityEngine;
+using ColossalFramework;
+
 namespace Gurkenplayer
 {
     public class Client
@@ -275,6 +279,14 @@ namespace Gurkenplayer
                     DemandExtBase._ResidentalDemand = msg.ReadInt32();
                     DemandExtBase._WorkplaceDemand = msg.ReadInt32();
                     break;
+                case 0x4000:
+                    Log.MessageUnity("Client received 0x4000");
+                    AreaExtBase._XCoordinate= msg.ReadInt32();
+                    AreaExtBase._ZCoordinate = msg.ReadInt32();
+                    //The unlock process is activated once every 4 seconds simutaniously with the
+                    //EcoExtBase.OnUpdateMoneyAmount(long internalMoneyAmount).
+                    //Maybe I find a direct way to unlock a tile within AreaExtBase
+                    break;
                 default: //Unbehandelte ID
                     Log.Warning("Client ProgressData: Unhandled ID/type: " + type);
                     break;
@@ -283,7 +295,7 @@ namespace Gurkenplayer
         /// <summary>
         /// Send the EconomyInformation of the client to the server to synchronize.
         /// </summary>
-        public void SendEconomyInformationToServer()
+        public void SendEconomyInformationUpdateToServer()
         {
             if (CanSendMessage)
             {
@@ -305,6 +317,18 @@ namespace Gurkenplayer
                 msg.Write(DemandExtBase._CommercialDemand);
                 msg.Write(DemandExtBase._ResidentalDemand);
                 msg.Write(DemandExtBase._WorkplaceDemand);
+                client.SendMessage(msg, NetDeliveryMethod.ReliableOrdered);
+                client.FlushSendQueue();
+            }
+        }
+
+        public void SendAreaInformationUpdateToServer(int x, int z)
+        {
+            if (CanSendMessage)
+            {
+                NetOutgoingMessage msg = client.CreateMessage((int)0x4000);
+                msg.Write(x);
+                msg.Write(z);
                 client.SendMessage(msg, NetDeliveryMethod.ReliableOrdered);
                 client.FlushSendQueue();
             }

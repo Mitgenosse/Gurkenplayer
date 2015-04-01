@@ -61,6 +61,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AreaExtBase.cs" />
     <Compile Include="Client.cs" />
     <Compile Include="ConfigurationPanel.cs" />
     <Compile Include="DemandExtBase.cs" />

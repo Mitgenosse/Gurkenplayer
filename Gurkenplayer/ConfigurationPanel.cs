@@ -28,49 +28,8 @@ namespace Gurkenplayer
             {
                 Log.ErrorUnity("ABC" + ex.ToString());
             }
-            try
-            {
-                //Configures the child elements
-                UILabel lbl_Header = this.AddUIComponent<UILabel>();
-                lbl_Header.text = "Gurkenplayer";
-                lbl_Header.eventClick += lbl_HeaderClickHandler;
-                lbl_Header.isEnabled = true;
-
-                UILabel lbl_Username = this.AddUIComponent<UILabel>();
-                lbl_Username.name = "lbl_Username";
-                lbl_Username.text = "Username:";
-                lbl_Username.position = new Vector3(20, 20);
-                lbl_Username.width = 100;
-                lbl_Username.height = 30;
-                lbl_Username.isEnabled = true;
-
-                UITextField txb_Username = this.AddUIComponent<UITextField>();
-                txb_Username.name = "txb_Username";
-                txb_Username.text = string.Empty;
-                txb_Username.position = new Vector3(120, 20);
-                txb_Username.width = 100; //hard code
-                txb_Username.height = 30;
-                txb_Username.isEnabled = true;
-
-                UILabel lbl_ClientHeader = this.AddUIComponent<UILabel>();
-                lbl_ClientHeader.name = "lbl_ClientHeader";
-                lbl_ClientHeader.text = "Client setup";
-                lbl_ClientHeader.position = new Vector3(20, 120);
-                lbl_ClientHeader.autoSize = true; //Test
-                lbl_ClientHeader.autoHeight = true;
-                lbl_ClientHeader.isEnabled = true;
-            }
-            catch (Exception ex)
-            {
-                Log.Error(ex.ToString());
-            }
-            //And so on
-        }
-
-        private void lbl_HeaderClickHandler(UIComponent component, UIMouseEventParameter eventParam)
-        {
-            Log.Message("lbl_Header: clicked");
         }
     }
 }
 //Info https://media.readthedocs.org/pdf/skylines-modding-docs/master/skylines-modding-docs.pdf
+// http://skylines-modding-docs.readthedocs.org/en/latest/modding/Development/How-to-Use-ColossalFramework.UI.html

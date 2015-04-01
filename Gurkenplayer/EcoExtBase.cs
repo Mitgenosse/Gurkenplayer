@@ -35,6 +35,12 @@ namespace Gurkenplayer
         /// <returns>The current money amount.</returns>
         public override long OnUpdateMoneyAmount(long internalMoneyAmount)
         {
+            if (AreaExtBase.IsNewTileAvailableToUnlock) //Not a beautiful way to solve the problem. Maybe I can take care of it later.
+            {       // Check if a new tile has to be unlocked.
+                managers.areas.UnlockArea((int)AreaExtBase._XCoordinate, (int)AreaExtBase._ZCoordinate, true);
+                AreaExtBase.SetIsNewTileAvailableToUnlockFalse();
+            }
+
             Log.Warning("internalMoneyAmount: " + internalMoneyAmount + " abc: " + economyManager.currentMoneyAmount);
             _internalMoneyAmount = internalMoneyAmount;
             if (GurkenplayerMod.MPRole == MultiplayerRole.Server)
@@ -44,7 +50,7 @@ namespace Gurkenplayer
             }
             if (GurkenplayerMod.MPRole == MultiplayerRole.Client)
             {
-                Client.Instance.SendEconomyInformationToServer();
+                Client.Instance.SendEconomyInformationUpdateToServer();
                 return _internalMoneyAmount;
                 
             }

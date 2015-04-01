@@ -5,6 +5,7 @@ using System.Text;
 //using System.Threading.Tasks;
 using Lidgren.Network;
 using System.Threading;
+using ICities;
 
 namespace Gurkenplayer
 {
@@ -307,6 +308,14 @@ namespace Gurkenplayer
                     DemandExtBase._ResidentalDemand = msg.ReadInt32();
                     DemandExtBase._WorkplaceDemand = msg.ReadInt32();
                     break;
+                case 0x4000:
+                    Log.MessageUnity("Server received 0x4000");
+                    AreaExtBase._XCoordinate = msg.ReadInt32();
+                    AreaExtBase._ZCoordinate = msg.ReadInt32();
+                    //The unlock process is activated once every 4 seconds simutaniously with the
+                    //EcoExtBase.OnUpdateMoneyAmount(long internalMoneyAmount).
+                    //Maybe I find a direct way to unlock a tile within AreaExtBase
+                    break;
                 default:
                     Log.Warning("Server_ProgressData: Unhandled type/message: " + msg.MessageType);
                     break;
@@ -326,7 +335,8 @@ namespace Gurkenplayer
                 server.SendToAll(msg, NetDeliveryMethod.ReliableOrdered);
                 server.FlushSendQueue();
             }
-        }
+        } //TEST: Update money from economymanager values and not from EcoExtBase.value
+
         /// <summary>
         /// Sends demand update to all. (Commercial demand, residental demand, workplace demand)
         /// </summary>
@@ -338,6 +348,23 @@ namespace Gurkenplayer
                 msg.Write(DemandExtBase._CommercialDemand);
                 msg.Write(DemandExtBase._ResidentalDemand);
                 msg.Write(DemandExtBase._WorkplaceDemand);
+                server.SendToAll(msg, NetDeliveryMethod.ReliableOrdered);
+                server.FlushSendQueue();
+            }
+        } //TEST: Update demant information from DemandExtBase properties
+
+        /// <summary>
+        /// Sends the information of the new unlocked tile to all.
+        /// </summary>
+        /// <param name="x">X coordinate of the new tile.</param>
+        /// <param name="z">Z coordinate of the new tile.</param>
+        public void SendAreaInformationUpdateToAll(int x, int z)
+        {
+            if (CanSendMessage)
+            {
+                NetOutgoingMessage msg = server.CreateMessage((int)0x4000);
+                msg.Write(x);
+                msg.Write(z);
                 server.SendToAll(msg, NetDeliveryMethod.ReliableOrdered);
                 server.FlushSendQueue();
             }

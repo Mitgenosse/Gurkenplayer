@@ -20,7 +20,7 @@ ToDo for both:
 -Create a configuration window at the start of the game
 -How to start the multiplayer session? Only new game?
 
-
+-Remove the assembly version (https://github.com/SkylinesModding/Docs/commit/e722e478083cb940a7de3dcaf5607aa2d198b4a3)
 
 Notes:
 ICities.dll -> Official modding API
@@ -36,3 +36,8 @@ Current procedure:
 -if it is full, show a message on server with 'start game'
 -onclick remove force stop of the game
 -play
+
+Resources:
+http://docs.skylinesmodding.com/en/master/general/index.html
+https://github.com/SkylinesModding/Docs
+http://www.skylineswiki.com/Modding_API
