@@ -68,7 +68,7 @@ namespace Gurkenplayer
         /// <summary>
         /// Returns true if the server is initialized and a client is connected to it.
         /// </summary>
-        private bool CanSendMessage
+        public bool CanSendMessage
         {
             get
             {
