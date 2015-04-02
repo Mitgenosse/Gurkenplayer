@@ -74,7 +74,7 @@ namespace Gurkenplayer
         }
 
         /// <summary>
-        /// Started in separate thread for synchronization purposes. Synchronizes the econom
+        /// Started in separate thread for synchronization purposes. Synchronizes every 444ms.
         /// </summary>
         void SynchronizeMoneyAmount()
         {
