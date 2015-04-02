@@ -4,7 +4,7 @@ Welcome to my first modification. The name of the mod will likely change.
 I am trying to build a coop multiplayer mode for Cities: Skyline.
 If you want to help me, then do it. :)
 
-Already done:
+<p>Already done:</p>
 -Setting up server and client socket (using Lidgren.Networking.dll (MIT license), thanks Lidgren!).
 -It should synchronize money, area demand (commercial, residental, industrial), bought tiles.
 
