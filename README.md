@@ -22,7 +22,3 @@ If you want to help me, then do it. :)
 * Once the server lobby is full, the host can start the game.
 
 I do not know if the simulation speed should be changeable. I have to overthink some parts of the gameplay experience.
-
----
-
-This source is going to be licensed under the MIT License when it is usable.
