@@ -102,18 +102,11 @@ namespace Gurkenplayer
         {
             get
             {
-                try
+                if (instance == null)
                 {
-                    if (instance == null)
-                    {
-                        instance = new Client();
-                    }
-                    return instance;
+                    instance = new Client();
                 }
-                catch (Exception ex)
-                {
-                    Log.Error(ex.ToString());
-                }
+
                 return instance;
             }
         }
@@ -151,7 +144,7 @@ namespace Gurkenplayer
             {
                 if (client != null)
                 {
-                    Log.Message("Client ConnectToServer: Connecting");
+                    Log.MessageUnity("Client ConnectToServer: Connecting");
 
                     //Manipulating fields
                     serverIP = ip;
@@ -159,17 +152,17 @@ namespace Gurkenplayer
                     serverPassword = password;
 
                     //Write approval message with password
-                    Log.Warning("Client creating message.");
+                    Log.WarningUnity("Client creating message.");
                     NetOutgoingMessage approvalMessage = client.CreateMessage();  //Approval message with password
                     approvalMessage.Write(serverPassword);
                     approvalMessage.Write(username);
 
                     client.Start();
-                    Log.Warning("Client started.");
+                    Log.WarningUnity("Client started.");
                     client.Connect(serverIP, serverPort, approvalMessage);
                     isClientConnected = true;
                     GurkenplayerMod.MPRole = MultiplayerRole.Client;
-                    Log.Message("Client ConnectToServer: " + serverIP + " " + serverPort);
+                    Log.MessageUnity("Client ConnectToServer: " + serverIP + " " + serverPort);
 
                     //Separate thread in which the received messages are handled
                     ParameterizedThreadStart pts = new ParameterizedThreadStart(this.ProcessMessage);
@@ -191,10 +184,10 @@ namespace Gurkenplayer
             {
                 if (isClientConnected)
                 {
-                    Log.Message("!!!Disconnecting");
+                    Log.MessageUnity("!!!Disconnecting");
                     client.Disconnect("Bye Bye Client.");
                     isClientConnected = !isClientConnected;
-                    Log.Message("!!!Disconected");
+                    Log.MessageUnity("!!!Disconected");
                 }
 
             }
@@ -221,7 +214,7 @@ namespace Gurkenplayer
                         case NetIncomingMessageType.DebugMessage: //Debug
                         case NetIncomingMessageType.WarningMessage: //Debug
                         case NetIncomingMessageType.ErrorMessage: //Debug
-                            //Log.Message("DebugMessage: " + msg.ReadString());
+                            Log.WarningUnity("DebugMessage: " + msg.ReadString());
                             break;
                         #endregion
 
@@ -230,11 +223,11 @@ namespace Gurkenplayer
                             NetConnectionStatus state = (NetConnectionStatus)msg.ReadByte();
                             if (state == NetConnectionStatus.Connected)
                             {
-                                Log.Message("You connected. Client IP: " + msg.SenderEndPoint);
+                                Log.MessageUnity("You connected. Client IP: " + msg.SenderEndPoint);
                             }
                             else if (state == NetConnectionStatus.Disconnected || state == NetConnectionStatus.Disconnecting)
                             {
-                                Log.Message("You disconnected. Client IP: " + msg.SenderEndPoint);
+                                Log.MessageUnity("You disconnected. Client IP: " + msg.SenderEndPoint);
                             }
                             break;
                         #endregion
@@ -252,7 +245,7 @@ namespace Gurkenplayer
                         #endregion
 
                         default:
-                            Log.Warning("Client ProcessMessage: Unhandled type/message: " + msg.MessageType);
+                            Log.WarningUnity("Client ProcessMessage: Unhandled type/message: " + msg.MessageType);
                             break;
                     }
                 }

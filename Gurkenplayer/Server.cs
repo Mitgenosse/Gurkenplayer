@@ -91,18 +91,11 @@ namespace Gurkenplayer
         {
             get
             {
-                try
+                if (instance == null)
                 {
-                    if (instance == null)
-                    {
-                        instance = new Server();
-                    }
-                    return instance;
+                    instance = new Server();
                 }
-                catch (Exception ex)
-                {
-                    Log.Error(ex.ToString());
-                }
+
                 return instance;
             }
         }
@@ -115,7 +108,7 @@ namespace Gurkenplayer
         {
             try
             {
-                Log.Message("Server constructor.");
+                Log.MessageUnity("Server constructor.");
                 config = new NetPeerConfiguration(appIdentifier);
                 config.Port = serverPort;
                 config.MaximumConnections = serverMaximumPlayerAmount;
@@ -123,7 +116,7 @@ namespace Gurkenplayer
                 config.AutoFlushSendQueue = false;
                 userList = new List<User>();
                 userList.Add(new User("Host", mpRole: MultiplayerRole.Server));
-                Log.Message("approval activated");
+                Log.MessageUnity("approval activated");
             }
             catch (Exception ex)
             {
@@ -161,7 +154,7 @@ namespace Gurkenplayer
                         server.Start();
                         IsServerStarted = !IsServerStarted;
                         GurkenplayerMod.MPRole = MultiplayerRole.Server;
-                        Log.Message("Server started");
+                        Log.MessageUnity("Server started");
 
                         //Separate thread in which the received messages are handled
                         ParameterizedThreadStart pts = new ParameterizedThreadStart(this.ProcessMessage);
@@ -172,7 +165,7 @@ namespace Gurkenplayer
             }
             catch (Exception ex)
             {
-                Log.Error("Server StartServer Error: " + ex.ToString());
+                Log.ErrorUnity("Server StartServer Error: " + ex.ToString());
             }
         }
 
@@ -185,10 +178,11 @@ namespace Gurkenplayer
             { //If NetServer is initialized and started, shut it down
                 if (IsServerStarted)
                 {
+                    Log.MessageUnity("Shutting down the server");
                     server.Shutdown("Bye bye Server!");
                     IsServerStarted = !IsServerStarted;
                     userList.Clear();
-                    Log.Message("Shutting down the server");
+                    Log.MessageUnity("Server shut down");
                 }
             }
         }
@@ -201,7 +195,7 @@ namespace Gurkenplayer
         {
             try
             {
-                Log.Message("In ProcessMessage thread");
+                Log.MessageUnity("In ProcessMessage thread");
                 server = (NetServer)obj;
                 NetIncomingMessage msg;
 
@@ -217,6 +211,7 @@ namespace Gurkenplayer
                             case NetIncomingMessageType.DebugMessage:
                             case NetIncomingMessageType.WarningMessage:
                             case NetIncomingMessageType.ErrorMessage:
+                                Log.WarningUnity("DebugMessage: " + msg.ReadString());
                                 break;
                             #endregion
 
@@ -226,11 +221,11 @@ namespace Gurkenplayer
                                 NetConnectionStatus state = (NetConnectionStatus)msg.ReadByte();
                                 if (state == NetConnectionStatus.Connected)
                                 {
-                                    Log.Message("Client connected. Client IP: " + msg.SenderEndPoint);
+                                    Log.MessageUnity("Client connected. Client IP: " + msg.SenderEndPoint);
                                 }
                                 else if (state == NetConnectionStatus.Disconnected || state == NetConnectionStatus.Disconnecting)
                                 {
-                                    Log.Message("Client disconnected. Client IP: " + msg.SenderEndPoint);
+                                    Log.MessageUnity("Client disconnected. Client IP: " + msg.SenderEndPoint);
                                     User.RemoveFromList(userList, msg.SenderConnection);
                                 }
                                 break;
@@ -254,29 +249,29 @@ namespace Gurkenplayer
 
                                 if (userList.Count <= ServerMaximumPlayerAmount)
                                 {
-                                    Log.Warning("User (" + sentUsername + ") trying to connect. Sent password " + sentPassword);
+                                    Log.WarningUnity("User (" + sentUsername + ") trying to connect. Sent password " + sentPassword);
                                     if (serverPassword == sentPassword)
                                     {
                                         userList.Add(new User(sentUsername, netConnection: msg.SenderConnection));
                                         msg.SenderConnection.Approve();
-                                        Log.Warning("User (" + sentUsername + ") approved.");
+                                        Log.WarningUnity("User (" + sentUsername + ") approved.");
                                     }
                                     else
                                     {
                                         msg.SenderConnection.Deny();
-                                        Log.Warning("User (" + sentUsername + ") denied. Wrong password.");
+                                        Log.WarningUnity("User (" + sentUsername + ") denied. Wrong password.");
                                     }
                                 }
                                 else
                                 {
                                     msg.SenderConnection.Deny();
-                                    Log.Warning("User (" + sentUsername + ") denied. Game is full.");
+                                    Log.WarningUnity("User (" + sentUsername + ") denied. Game is full.");
                                 }
                                 break;
                             #endregion
 
                             default:
-                                Log.Warning("Server_ProcessMessage: Unhandled type/message: " + msg.MessageType);
+                                Log.WarningUnity("Server_ProcessMessage: Unhandled type/message: " + msg.MessageType);
                                 break;
                         }
                     }
@@ -284,7 +279,7 @@ namespace Gurkenplayer
             }
             catch (Exception ex)
             {
-                Log.Error(ex.ToString());
+                Log.ErrorUnity("ProcessMessage error: " + ex.ToString());
             }
         }
         
@@ -298,12 +293,12 @@ namespace Gurkenplayer
             switch (type)
             {
                 case 0x2000: //Receiving money
-                    Log.Message("Server received 0x2000");
+                    Log.MessageUnity("Server received 0x2000");
                     EcoExtBase._CurrentMoneyAmount = msg.ReadInt64();
                     EcoExtBase._InternalMoneyAmount = msg.ReadInt64();
                     break;
                 case 0x3000: //Receiving demand
-                    Log.Message("Server received 0x3000");
+                    Log.MessageUnity("Server received 0x3000");
                     DemandExtBase._CommercialDemand = msg.ReadInt32();
                     DemandExtBase._ResidentalDemand = msg.ReadInt32();
                     DemandExtBase._WorkplaceDemand = msg.ReadInt32();
@@ -317,7 +312,7 @@ namespace Gurkenplayer
                     //Maybe I find a direct way to unlock a tile within AreaExtBase
                     break;
                 default:
-                    Log.Warning("Server_ProgressData: Unhandled type/message: " + msg.MessageType);
+                    Log.WarningUnity("Server_ProgressData: Unhandled type/message: " + msg.MessageType);
                     break;
             }
         }

@@ -56,7 +56,6 @@ namespace Gurkenplayer
                 AreaExtBase.SetIsNewTileAvailableToUnlockFalse();
             }
 
-            Log.Warning("internalMoneyAmount: " + internalMoneyAmount + " abc: " + economyManager.currentMoneyAmount);
             _internalMoneyAmount = internalMoneyAmount;
             if (GurkenplayerMod.MPRole == MultiplayerRole.Server)
             {
@@ -69,7 +68,6 @@ namespace Gurkenplayer
                 return _internalMoneyAmount;
                 
             }
-            Log.Warning("internalMoneyAmount: " + internalMoneyAmount + " abc: " + economyManager.currentMoneyAmount);
             return internalMoneyAmount; //If user is not server or client, he should not be connected. Return original value
         }
 
