@@ -86,12 +86,10 @@ namespace Gurkenplayer
             txt_Username.height = 22;
             txt_Username.text = "";
             txt_Username.maxLength = 48;
-
             txt_Username.isEnabled = true;
             txt_Username.builtinKeyNavigation = true;
             txt_Username.isInteractive = true;
             txt_Username.readOnly = false;
-
             txt_Username.selectionSprite = "EmptySprite";
             txt_Username.selectionBackgroundColor = new Color32(204, 255, 51, 255);
             txt_Username.normalBgSprite = "TextFieldPanel";
@@ -115,12 +113,10 @@ namespace Gurkenplayer
             txt_Password.height = 22;
             txt_Password.text = "";
             txt_Password.maxLength = 48;
-
             txt_Password.isEnabled = true;
             txt_Password.builtinKeyNavigation = true;
             txt_Password.isInteractive = true;
             txt_Password.readOnly = false;
-
             txt_Password.selectionSprite = "EmptySprite";
             txt_Password.selectionBackgroundColor = new Color32(204, 255, 51, 255);
             txt_Password.normalBgSprite = "TextFieldPanel";
@@ -150,12 +146,10 @@ namespace Gurkenplayer
             txt_ClientIP.height = 22;
             txt_ClientIP.text = "localhost";
             txt_ClientIP.maxLength = 48;
-
             txt_ClientIP.isEnabled = true;
             txt_ClientIP.builtinKeyNavigation = true;
             txt_ClientIP.isInteractive = true;
             txt_ClientIP.readOnly = false;
-            
             txt_ClientIP.selectionSprite = "EmptySprite";
             txt_ClientIP.selectionBackgroundColor = new Color32(204, 255, 51, 255);
             txt_ClientIP.normalBgSprite = "TextFieldPanel";
@@ -179,12 +173,10 @@ namespace Gurkenplayer
             txt_ClientPort.height = 22;
             txt_ClientPort.text = "4230";
             txt_ClientPort.maxLength = 48;
-
             txt_ClientPort.isEnabled = true;
             txt_ClientPort.builtinKeyNavigation = true;
             txt_ClientPort.isInteractive = true;
             txt_ClientPort.readOnly = false;
-
             txt_ClientPort.selectionSprite = "EmptySprite";
             txt_ClientPort.selectionBackgroundColor = new Color32(204, 255, 51, 255);
             txt_ClientPort.normalBgSprite = "TextFieldPanel";
@@ -232,12 +224,10 @@ namespace Gurkenplayer
             txt_ServerPlayers.height = 22;
             txt_ServerPlayers.text = "2";
             txt_ServerPlayers.maxLength = 48;
-
             txt_ServerPlayers.isEnabled = true;
             txt_ServerPlayers.builtinKeyNavigation = true;
             txt_ServerPlayers.isInteractive = true;
             txt_ServerPlayers.readOnly = true;
-
             txt_ServerPlayers.selectionSprite = "EmptySprite";
             txt_ServerPlayers.selectionBackgroundColor = new Color32(204, 255, 51, 255);
             txt_ServerPlayers.normalBgSprite = "TextFieldPanel";
@@ -261,12 +251,10 @@ namespace Gurkenplayer
             txt_ServerPort.height = 22;
             txt_ServerPort.text = "4230";
             txt_ServerPort.maxLength = 48;
-
             txt_ServerPort.isEnabled = true;
             txt_ServerPort.builtinKeyNavigation = true;
             txt_ServerPort.isInteractive = true;
             txt_ServerPort.readOnly = false;
-
             txt_ServerPort.selectionSprite = "EmptySprite";
             txt_ServerPort.selectionBackgroundColor = new Color32(204, 255, 51, 255);
             txt_ServerPort.normalBgSprite = "TextFieldPanel";
