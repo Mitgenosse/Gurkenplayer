@@ -11,10 +11,28 @@ namespace Gurkenplayer
 {
     class ConfigurationPanel : UIPanel //Testing
     {
+        private static ConfigurationPanel panel;
+
+        public static ConfigurationPanel Instance
+        {
+            get
+            {
+                if (panel == null)
+                    panel = new ConfigurationPanel();
+
+                return panel;
+            }
+        }
+        private ConfigurationPanel()
+        {
+
+        }
+
         public override void Start()
         {
             Log.MessageUnity("Configuration panel start.");
             SimulationManager.instance.ForcedSimulationPaused = true;
+
             try
             {
                 //Configures this window

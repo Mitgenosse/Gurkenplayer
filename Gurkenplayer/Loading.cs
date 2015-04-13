@@ -14,7 +14,7 @@ namespace Gurkenplayer
     public class Loading : LoadingExtensionBase
     {
         LoadMode loadMode;
-        //UIComponent uiComponent;
+        UIComponent uiComponent;
 
         /// <summary>
         /// Thread: Main
@@ -39,7 +39,7 @@ namespace Gurkenplayer
 
             UIView v = UIView.GetAView();
 
-            UIComponent uiComponent = v.AddUIComponent(typeof(ConfigurationPanel)); //Throws null error. T.T
+            uiComponent = (UIComponent)v.AddUIComponent(typeof(ConfigurationPanel));
 
             try
             {

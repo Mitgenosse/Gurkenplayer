@@ -20,7 +20,6 @@ namespace Gurkenplayer
             set { GurkenplayerMod.mpRole = value; }
         }
 
-
         //Necessary properties
         public string Description
         {
