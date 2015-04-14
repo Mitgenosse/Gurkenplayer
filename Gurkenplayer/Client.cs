@@ -160,9 +160,7 @@ namespace Gurkenplayer
                     client.Start();
                     Log.WarningUnity("Client started.");
                     client.Connect(serverIP, serverPort, approvalMessage);
-                    isClientConnected = true;
-                    GurkenplayerMod.MPRole = MultiplayerRole.Client;
-                    Log.MessageUnity("Client ConnectToServer: " + serverIP + " " + serverPort);
+                    Log.MessageUnity("Client ConnectToServer: " + serverIP + ":" + serverPort);
 
                     //Separate thread in which the received messages are handled
                     ParameterizedThreadStart pts = new ParameterizedThreadStart(this.ProcessMessage);
@@ -223,6 +221,8 @@ namespace Gurkenplayer
                             NetConnectionStatus state = (NetConnectionStatus)msg.ReadByte();
                             if (state == NetConnectionStatus.Connected)
                             {
+                                isClientConnected = true;
+                                GurkenplayerMod.MPRole = MultiplayerRole.Client;
                                 Log.MessageUnity("You connected. Client IP: " + msg.SenderEndPoint);
                             }
                             else if (state == NetConnectionStatus.Disconnected || state == NetConnectionStatus.Disconnecting)
