@@ -37,10 +37,16 @@ namespace Gurkenplayer
 
             loadMode = mode;
 
-            UIView v = UIView.GetAView();
+            try
+            {
+                UIView v = UIView.GetAView();
 
-            uiComponent = (UIComponent)v.AddUIComponent(typeof(ConfigurationPanel));
-
+                uiComponent = (UIComponent)v.AddUIComponent(typeof(ConfigurationPanel));
+            }
+            catch (Exception ex)
+            {
+                Log.Error("Adding UI Error: " + ex.ToString());
+            }
             try
             {
                 //Log.Message("creating server instance");

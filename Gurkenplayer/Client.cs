@@ -23,7 +23,7 @@ namespace Gurkenplayer
         private string serverIP = "localhost";
         private int serverPort = 4420;
         private string serverPassword = "Password";
-        private static bool isClientInitialized = false;
+        //private static bool isClientInitialized = false;
         private static bool isClientConnected = false;
         private string username = "usr";
         #endregion
@@ -62,12 +62,17 @@ namespace Gurkenplayer
             set { Client.isClientConnected = value; }
         }
         /// <summary>
-        /// Returns true if the client is initialized.
+        /// Returns true if the client is initialized (instance != null).
         /// </summary>
         public static bool IsClientInitialized
         {
-            get { return Client.isClientInitialized; }
-            set { Client.isClientInitialized = value; }
+            get 
+            {
+                if (instance != null)
+                    return true;
+                else
+                    return false;
+            }
         }
         /// <summary>
         /// Returns the username of the client.
@@ -84,15 +89,13 @@ namespace Gurkenplayer
         {
             get
             {
-                if (client != null)
-                {
+                if (IsClientInitialized)
                     if (IsClientConnected)
                         return true;
-                }
+
                 return false;
             }
         }
-
 
         //Singleton pattern
         /// <summary>
@@ -103,9 +106,7 @@ namespace Gurkenplayer
             get
             {
                 if (instance == null)
-                {
                     instance = new Client();
-                }
 
                 return instance;
             }
@@ -129,6 +130,13 @@ namespace Gurkenplayer
                 Log.Error(ex.ToString());
             }
         }
+        /// <summary>
+        /// Destructor logic.
+        /// </summary>
+        ~Client()
+        {
+            IsClientConnected = false;
+        }
 
         //Methods
         /// <summary>
@@ -140,37 +148,30 @@ namespace Gurkenplayer
         /// <param name="password">The server password which is used to connect. Default: none</param>
         public void ConnectToServer(string ip = "localhost", int port = 4230, string password = "")
         {
-            try
+            if (IsClientInitialized)
             {
-                if (client != null)
-                {
-                    Log.MessageUnity("Client ConnectToServer: Connecting");
+                Log.Message("Client ConnectToServer: Connecting");
 
-                    //Manipulating fields
-                    serverIP = ip;
-                    serverPort = port;
-                    serverPassword = password;
+                //Manipulating fields
+                ServerIP = ip;
+                ServerPort = port;
+                ServerPassword = password;
 
-                    //Write approval message with password
-                    Log.WarningUnity("Client creating message.");
-                    NetOutgoingMessage approvalMessage = client.CreateMessage();  //Approval message with password
-                    approvalMessage.Write(serverPassword);
-                    approvalMessage.Write(username);
+                //Write approval message with password
+                Log.Warning("Client creating message.");
+                NetOutgoingMessage approvalMessage = client.CreateMessage();  //Approval message with password
+                approvalMessage.Write(ServerPassword);
+                approvalMessage.Write(Username);
 
-                    client.Start();
-                    Log.WarningUnity("Client started.");
-                    client.Connect(serverIP, serverPort, approvalMessage);
-                    Log.MessageUnity("Client ConnectToServer: " + serverIP + ":" + serverPort);
+                client.Start();
+                Log.Warning("Client started.");
+                client.Connect(ServerIP, ServerPort, approvalMessage);
+                Log.Message("Client ConnectToServer: " + ServerIP + ":" + ServerPort);
 
-                    //Separate thread in which the received messages are handled
-                    ParameterizedThreadStart pts = new ParameterizedThreadStart(this.ProcessMessage);
-                    Thread thread = new Thread(pts);
-                    thread.Start(client);
-                }
-            }
-            catch (Exception ex)
-            {
-                Log.Error(ex.ToString());
+                //Separate thread in which the received messages are handled
+                ParameterizedThreadStart pts = new ParameterizedThreadStart(this.ProcessMessage);
+                Thread thread = new Thread(pts);
+                thread.Start(client);
             }
         }
         /// <summary>
@@ -178,14 +179,14 @@ namespace Gurkenplayer
         /// </summary>
         public void DisconnectFromServer()
         {
-            if (client != null)
+            if (IsClientInitialized)
             {
                 if (isClientConnected)
                 {
-                    Log.MessageUnity("!!!Disconnecting");
+                    Log.Message("!!!Disconnecting");
                     client.Disconnect("Bye Bye Client.");
-                    isClientConnected = !isClientConnected;
-                    Log.MessageUnity("!!!Disconected");
+                    IsClientConnected = !IsClientConnected;
+                    Log.Message("!!!Disconected");
                 }
 
             }
@@ -200,7 +201,7 @@ namespace Gurkenplayer
             NetClient client = (NetClient)obj;
             NetIncomingMessage msg;
 
-            while (isClientConnected)
+            while (IsClientConnected)
             {
                 while ((msg = client.ReadMessage()) != null)
                 {
@@ -212,7 +213,7 @@ namespace Gurkenplayer
                         case NetIncomingMessageType.DebugMessage: //Debug
                         case NetIncomingMessageType.WarningMessage: //Debug
                         case NetIncomingMessageType.ErrorMessage: //Debug
-                            Log.WarningUnity("DebugMessage: " + msg.ReadString());
+                            Log.Warning("DebugMessage: " + msg.ReadString());
                             break;
                         #endregion
 
@@ -221,13 +222,13 @@ namespace Gurkenplayer
                             NetConnectionStatus state = (NetConnectionStatus)msg.ReadByte();
                             if (state == NetConnectionStatus.Connected)
                             {
-                                isClientConnected = true;
+                                IsClientConnected = true;
                                 GurkenplayerMod.MPRole = MultiplayerRole.Client;
-                                Log.MessageUnity("You connected. Client IP: " + msg.SenderEndPoint);
+                                Log.Message("You connected. Client IP: " + msg.SenderEndPoint);
                             }
                             else if (state == NetConnectionStatus.Disconnected || state == NetConnectionStatus.Disconnecting)
                             {
-                                Log.MessageUnity("You disconnected. Client IP: " + msg.SenderEndPoint);
+                                Log.Message("You disconnected. Client IP: " + msg.SenderEndPoint);
                             }
                             break;
                         #endregion
@@ -245,7 +246,7 @@ namespace Gurkenplayer
                         #endregion
 
                         default:
-                            Log.WarningUnity("Client ProcessMessage: Unhandled type/message: " + msg.MessageType);
+                            Log.Warning("Client ProcessMessage: Unhandled type/message: " + msg.MessageType);
                             break;
                     }
                 }
@@ -273,10 +274,10 @@ namespace Gurkenplayer
                     DemandExtBase._WorkplaceDemand = msg.ReadInt32();
                     break;
                 case 0x4000:
-                    Log.MessageUnity("Client received 0x4000");
+                    Log.Message("Client received 0x4000");
                     AreaExtBase._XCoordinate= msg.ReadInt32();
                     AreaExtBase._ZCoordinate = msg.ReadInt32();
-                    //The unlock process is activated once every 4 seconds simutaniously with the
+                    //INFO: The unlock process is activated once every 4 seconds simutaniously with the
                     //EcoExtBase.OnUpdateMoneyAmount(long internalMoneyAmount).
                     //Maybe I find a direct way to unlock a tile within AreaExtBase
                     break;

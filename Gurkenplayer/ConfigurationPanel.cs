@@ -12,6 +12,7 @@ namespace Gurkenplayer
     class ConfigurationPanel : UIPanel //Testing
     {
         //Fields
+        #region Fields
         UILabel lbl_Gurkenplayer;
         UILabel lbl_Username;
         UITextField txt_Username;
@@ -31,6 +32,7 @@ namespace Gurkenplayer
         UILabel lbl_ServerPort;
         UITextField txt_ServerPort;
         UIButton btn_ServerStart;
+        #endregion
 
         //Methods
         public override void Start()
@@ -62,10 +64,22 @@ namespace Gurkenplayer
             }
             catch (Exception ex)
             {
-                Log.ErrorUnity("ABC" + ex.ToString());
+                Log.ErrorUnity("Error creating Panel: " + ex.ToString());
             }
         }
 
+        /// <summary>
+        /// OnDisable event of UIPanel. Triggers when the object is disabled.
+        /// </summary>
+        public override void OnDisable()
+        {
+            SimulationManager.instance.ForcedSimulationPaused = false;
+            base.OnDisable();
+        }
+
+        /// <summary>
+        /// Adds all the controls to the ConfigurationPanel.
+        /// </summary>
         private void PopulateConfigurationPanel()
         {
             //Gurkenplayer Label
@@ -302,32 +316,29 @@ namespace Gurkenplayer
             btn_Reset.eventClick += btn_Reset_eventClick;
         }
 
-        void btn_Reset_eventClick(UIComponent component, UIMouseEventParameter eventParam)
-        {
-            if (GurkenplayerMod.MPRole == MultiplayerRole.Server)
-            {
-                if(Server.IsServerStarted)
-                    Server.Instance.StopServer();
-            }
-            else if (GurkenplayerMod.MPRole == MultiplayerRole.Client)
-            {
-                if (Client.IsClientConnected)
-                    Client.Instance.DisconnectFromServer();
-            }
-
-            btn_ClientConnect.Enable();
-            btn_ServerStart.Enable();
-        }
-
+        /// <summary>
+        /// Starts the server eventClick event.
+        /// </summary>
+        /// <param name="component">Triggered UIComponent.</param>
+        /// <param name="eventParam"></param>
         void btn_ServerStart_eventClick(UIComponent component, UIMouseEventParameter eventParam)
         {
             try
             {
                 Log.MessageUnity(String.Format("Trying to start a lobby on port {0} with the username {1} and password {2}", txt_ClientPort.text, txt_Username.text, txt_Password.text));
+                //Try to start the server on click
                 Server.Instance.StartServer(port: Convert.ToInt32(txt_ServerPort.text), password: txt_Password.text, maximumPlayerAmount: Convert.ToInt32(txt_ServerPlayers.text));
-                Log.MessageUnity("Server lobby started! Current MPRole is " + GurkenplayerMod.MPRole);
-                btn_ClientConnect.Disable();
-                btn_ServerStart.Disable();
+
+                if (Server.IsServerStarted)
+                {   //Check if the server is started correctly.
+                    Log.MessageUnity("Server lobby started! Current MPRole is " + GurkenplayerMod.MPRole);
+                    btn_ClientConnect.Disable();
+                    btn_ServerStart.Disable();
+                }
+                else
+                {
+                    Log.MessageUnity("Server lobby could not start.");
+                }
             }
             catch (Exception ex)
             {
@@ -335,15 +346,29 @@ namespace Gurkenplayer
             }
         }
 
+        /// <summary>
+        /// Connects to the server eventClick event.
+        /// </summary>
+        /// <param name="component">Triggered UIComponent.</param>
+        /// <param name="eventParam"></param>
         void btn_ClientConnect_eventClick(UIComponent component, UIMouseEventParameter eventParam)
         {
             try
             {
                 Log.MessageUnity(String.Format("Trying to connect to {0}:{1} with the username {2} and password {3}", txt_ClientIP.text, txt_ClientPort.text, txt_Username.text, txt_Password.text));
+                //Tries to connect to the server
                 Client.Instance.ConnectToServer(txt_ClientIP.text, Convert.ToInt32(txt_ClientPort.text), txt_Password.text);
-                Log.MessageUnity("You connected to " + txt_ClientIP.text + " Current MPRole is " + GurkenplayerMod.MPRole);
-                btn_ClientConnect.Disable();
-                btn_ServerStart.Disable();
+
+                if (Client.IsClientConnected)
+                {   //Check if the client is connected correctly
+                    Log.MessageUnity("You connected to " + txt_ClientIP.text + " Current MPRole is " + GurkenplayerMod.MPRole);
+                    btn_ClientConnect.Disable();
+                    btn_ServerStart.Disable();
+                }
+                else
+                {
+                    Log.MessageUnity("Could not connect to " + txt_ClientIP.text);
+                }
             }
             catch (Exception ex)
             {
@@ -351,10 +376,32 @@ namespace Gurkenplayer
             }
         }
 
-        public override void OnDisable()
+        /// <summary>
+        /// Resets everything eventClick event.
+        /// </summary>
+        /// <param name="component">Triggered UIComponent.</param>
+        /// <param name="eventParam"></param>
+        void btn_Reset_eventClick(UIComponent component, UIMouseEventParameter eventParam)
         {
-            SimulationManager.instance.ForcedSimulationPaused = false;
-            base.OnDisable();
+            if (GurkenplayerMod.MPRole == MultiplayerRole.Server)
+            {
+                if (Server.IsServerStarted)
+                {
+                    Server.Instance.StopServer();
+                    Log.Warning("Server stopped.");
+                }
+            }
+            else if (GurkenplayerMod.MPRole == MultiplayerRole.Client)
+            {
+                if (Client.IsClientConnected)
+                {
+                    Client.Instance.DisconnectFromServer();
+                    Log.Warning("Client disconnected.");
+                }
+            }
+
+            btn_ClientConnect.Enable();
+            btn_ServerStart.Enable();
         }
     }
 }

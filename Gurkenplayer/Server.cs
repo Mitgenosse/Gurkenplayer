@@ -12,17 +12,19 @@ namespace Gurkenplayer
     public class Server
     {
         //Fields
-        private static Server instance; //Singleton instance object
+        #region Fields (and objects <3)
+        static Server instance; //Singleton instance object
         NetPeerConfiguration config; //Is used to create the server
         NetServer server;
-        private string appIdentifier = "Gurkenplayer";
-        private string serverPassword = "Password";
-        private int serverPort = 4230;
-        private int serverMaximumPlayerAmount = 2;
-        private static bool isServerStarted = false;
-        private string username = "Host";
+        string appIdentifier = "Gurkenplayer";
+        string serverPassword = "Password";
+        int serverPort = 4230;
+        int serverMaximumPlayerAmount = 2;
+        static bool isServerStarted = false;
+        string username = "Host";
 
         public List<User> userList;
+        #endregion
 
         //Properties
         /// <summary>
@@ -58,6 +60,19 @@ namespace Gurkenplayer
             set { Server.isServerStarted = value; }
         }
         /// <summary>
+        /// Returns true if the server is initialized (instance != null).
+        /// </summary>
+        public static bool IsServerInitialized
+        {
+            get
+            {
+                if (Instance != null)
+                    return true;
+                else
+                    return false;
+            }
+        }
+        /// <summary>
         /// Returns the username.
         /// </summary>
         public string Username
@@ -73,14 +88,12 @@ namespace Gurkenplayer
             get
             {
                 if (server != null)
-                {
                     if (server.ConnectionsCount > 0)
                         return true;
-                }
+
                 return false;
             }
         }
-
 
         //Singleton pattern
         /// <summary>
@@ -92,9 +105,7 @@ namespace Gurkenplayer
             get
             {
                 if (instance == null)
-                {
                     instance = new Server();
-                }
 
                 return instance;
             }
@@ -104,24 +115,25 @@ namespace Gurkenplayer
         /// <summary>
         /// Private Server constructor used in the singleton pattern. It initialized the config.
         /// </summary>
-        private Server() 
+        private Server()
         {
-            try
-            {
-                Log.MessageUnity("Server constructor.");
-                config = new NetPeerConfiguration(appIdentifier);
-                config.Port = serverPort;
-                config.MaximumConnections = serverMaximumPlayerAmount;
-                config.EnableMessageType(NetIncomingMessageType.ConnectionApproval);
-                config.AutoFlushSendQueue = false;
-                userList = new List<User>();
-                userList.Add(new User("Host", mpRole: MultiplayerRole.Server));
-                Log.MessageUnity("approval activated");
-            }
-            catch (Exception ex)
-            {
-                Log.Error(ex.ToString());
-            }
+            Log.Message("Server constructor.");
+            config = new NetPeerConfiguration(appIdentifier);
+            config.Port = ServerPort;
+            config.MaximumConnections = ServerMaximumPlayerAmount;
+            config.EnableMessageType(NetIncomingMessageType.ConnectionApproval);
+            config.AutoFlushSendQueue = false;
+            userList = new List<User>();
+            userList.Add(new User("Host", mpRole: MultiplayerRole.Server));
+            Log.Message("approval activated");
+        }
+        /// <summary>
+        /// Destructor logic.
+        /// </summary>
+        ~Server()
+        {
+            //Reset static values just to be sure
+            IsServerStarted = false;
         }
 
         //Methods
@@ -134,38 +146,28 @@ namespace Gurkenplayer
         /// <param name="maximumPlayerAmount">Amount of players. Default: 2</param>
         public void StartServer(int port = 4230, string password = "", int maximumPlayerAmount = 2)
         {
-            try
+            if (!IsServerStarted)
             {
-                if (instance != null)
-                {
-                    if (!IsServerStarted)
-                    {
-                        //Field configuration
-                        serverPort = port;
-                        serverPassword = password;
-                        serverMaximumPlayerAmount = maximumPlayerAmount;
+                //Field configuration
+                ServerPort = port;
+                ServerPassword = password;
+                ServerMaximumPlayerAmount = maximumPlayerAmount;
 
-                        //NetPeerConfiguration configuration
-                        config.Port = serverPort;
-                        config.MaximumConnections = serverMaximumPlayerAmount;
+                //NetPeerConfiguration configuration
+                config.Port = ServerPort;
+                config.MaximumConnections = ServerMaximumPlayerAmount;
 
-                        //Initializes the NetServer object with the config and start it
-                        server = new NetServer(config);
-                        server.Start();
-                        IsServerStarted = !IsServerStarted;
-                        GurkenplayerMod.MPRole = MultiplayerRole.Server;
-                        Log.MessageUnity("Server started");
+                //Initializes the NetServer object with the config and start it
+                server = new NetServer(config);
+                server.Start();
+                IsServerStarted = !IsServerStarted;
+                GurkenplayerMod.MPRole = MultiplayerRole.Server;
+                Log.Message("Server started");
 
-                        //Separate thread in which the received messages are handled
-                        ParameterizedThreadStart pts = new ParameterizedThreadStart(this.ProcessMessage);
-                        Thread thread = new Thread(pts);
-                        thread.Start(server);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Log.ErrorUnity("Server StartServer Error: " + ex.ToString());
+                //Separate thread in which the received messages are handled
+                ParameterizedThreadStart pts = new ParameterizedThreadStart(this.ProcessMessage);
+                Thread thread = new Thread(pts);
+                thread.Start(server);
             }
         }
 
@@ -174,15 +176,15 @@ namespace Gurkenplayer
         /// </summary>
         public void StopServer()
         {
-            if (server != null)
+            if (IsServerInitialized)
             { //If NetServer is initialized and started, shut it down
                 if (IsServerStarted)
                 {
-                    Log.MessageUnity("Shutting down the server");
+                    Log.Message("Shutting down the server");
                     server.Shutdown("Bye bye Server!");
                     IsServerStarted = !IsServerStarted;
                     userList.Clear();
-                    Log.MessageUnity("Server shut down");
+                    Log.Message("Server shut down");
                 }
             }
         }
@@ -195,11 +197,10 @@ namespace Gurkenplayer
         {
             try
             {
-                Log.MessageUnity("In ProcessMessage thread");
                 server = (NetServer)obj;
                 NetIncomingMessage msg;
 
-                while (isServerStarted)
+                while (IsServerStarted)
                 { //As long as the server is started
                     while ((msg = server.ReadMessage()) != null)
                     {
@@ -211,7 +212,7 @@ namespace Gurkenplayer
                             case NetIncomingMessageType.DebugMessage:
                             case NetIncomingMessageType.WarningMessage:
                             case NetIncomingMessageType.ErrorMessage:
-                                Log.WarningUnity("DebugMessage: " + msg.ReadString());
+                                Log.Warning("DebugMessage: " + msg.ReadString());
                                 break;
                             #endregion
 
@@ -221,12 +222,12 @@ namespace Gurkenplayer
                                 NetConnectionStatus state = (NetConnectionStatus)msg.ReadByte();
                                 if (state == NetConnectionStatus.Connected)
                                 {
-                                    Log.MessageUnity("Client connected. Client IP: " + msg.SenderEndPoint);
+                                    Log.Message("Client connected. Client IP: " + msg.SenderEndPoint);
                                 }
                                 else if (state == NetConnectionStatus.Disconnected || state == NetConnectionStatus.Disconnecting)
                                 {
-                                    Log.MessageUnity("Client disconnected. Client IP: " + msg.SenderEndPoint);
                                     User.RemoveFromList(userList, msg.SenderConnection);
+                                    Log.Message("Client disconnected. Client IP: " + msg.SenderEndPoint);
                                 }
                                 break;
                             #endregion
@@ -249,29 +250,29 @@ namespace Gurkenplayer
 
                                 if (userList.Count <= ServerMaximumPlayerAmount)
                                 {
-                                    Log.WarningUnity("User (" + sentUsername + ") trying to connect. Sent password " + sentPassword);
-                                    if (serverPassword == sentPassword)
+                                    Log.Warning("User (" + sentUsername + ") trying to connect. Sent password " + sentPassword);
+                                    if (ServerPassword == sentPassword)
                                     {
                                         userList.Add(new User(sentUsername, netConnection: msg.SenderConnection));
                                         msg.SenderConnection.Approve();
-                                        Log.WarningUnity("User (" + sentUsername + ") approved.");
+                                        Log.Warning("User (" + sentUsername + ") approved.");
                                     }
                                     else
                                     {
                                         msg.SenderConnection.Deny();
-                                        Log.WarningUnity("User (" + sentUsername + ") denied. Wrong password.");
+                                        Log.Warning("User (" + sentUsername + ") denied. Wrong password.");
                                     }
                                 }
                                 else
                                 {
                                     msg.SenderConnection.Deny();
-                                    Log.WarningUnity("User (" + sentUsername + ") denied. Game is full.");
+                                    Log.Warning("User (" + sentUsername + ") denied. Game is full.");
                                 }
                                 break;
                             #endregion
 
                             default:
-                                Log.WarningUnity("Server_ProcessMessage: Unhandled type/message: " + msg.MessageType);
+                                Log.Warning("Server_ProcessMessage: Unhandled type/message: " + msg.MessageType);
                                 break;
                         }
                     }
@@ -279,7 +280,7 @@ namespace Gurkenplayer
             }
             catch (Exception ex)
             {
-                Log.ErrorUnity("ProcessMessage error: " + ex.ToString());
+                Log.Error("ProcessMessage error: " + ex.ToString());
             }
         }
         
@@ -293,26 +294,26 @@ namespace Gurkenplayer
             switch (type)
             {
                 case 0x2000: //Receiving money
-                    Log.MessageUnity("Server received 0x2000");
+                    Log.Message("Server received 0x2000");
                     EcoExtBase._CurrentMoneyAmount = msg.ReadInt64();
                     EcoExtBase._InternalMoneyAmount = msg.ReadInt64();
                     break;
                 case 0x3000: //Receiving demand
-                    Log.MessageUnity("Server received 0x3000");
+                    Log.Message("Server received 0x3000");
                     DemandExtBase._CommercialDemand = msg.ReadInt32();
                     DemandExtBase._ResidentalDemand = msg.ReadInt32();
                     DemandExtBase._WorkplaceDemand = msg.ReadInt32();
                     break;
                 case 0x4000:
-                    Log.MessageUnity("Server received 0x4000");
+                    Log.Message("Server received 0x4000");
                     AreaExtBase._XCoordinate = msg.ReadInt32();
                     AreaExtBase._ZCoordinate = msg.ReadInt32();
-                    //The unlock process is activated once every 4 seconds simutaniously with the
+                    //INFO: The unlock process is activated once every 4 seconds simutaniously with the
                     //EcoExtBase.OnUpdateMoneyAmount(long internalMoneyAmount).
                     //Maybe I find a direct way to unlock a tile within AreaExtBase
                     break;
                 default:
-                    Log.WarningUnity("Server_ProgressData: Unhandled type/message: " + msg.MessageType);
+                    Log.Warning("Server_ProgressData: Unhandled type/message: " + msg.MessageType);
                     break;
             }
         }
