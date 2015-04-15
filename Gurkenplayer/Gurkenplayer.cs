@@ -23,7 +23,7 @@ namespace Gurkenplayer
         //Necessary properties
         public string Description
         {
-            get { return "Test multiplayer mod for Cities: Skylines."; }
+            get { return "Multiplayer mod for Cities: Skylines."; }
         }
 
         public string Name
