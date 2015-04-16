@@ -98,6 +98,7 @@ namespace Gurkenplayer
             {
                 Client.Instance.DisconnectFromServer();
             }
+            GurkenplayerMod.MPRole = MultiplayerRole.None;
         }
         /// <summary>
         /// Thread: Main
@@ -107,6 +108,18 @@ namespace Gurkenplayer
         {
             if (uiComponent != null)
                 UnityEngine.Object.Destroy(uiComponent);
+
+            if (GurkenplayerMod.MPRole != MultiplayerRole.None)
+            {
+                if (GurkenplayerMod.MPRole == MultiplayerRole.Server)
+                {
+                    Server.Instance.StopServer();
+                }
+                else if (GurkenplayerMod.MPRole == MultiplayerRole.Client)
+                {
+                    Client.Instance.DisconnectFromServer();
+                }
+            }
         }
     }
 }

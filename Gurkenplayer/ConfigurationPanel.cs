@@ -37,7 +37,7 @@ namespace Gurkenplayer
         //Methods
         public override void Start()
         {
-            Log.MessageUnity("Configuration panel start...");
+            Log.Message("Configuration panel start...");
             SimulationManager.instance.ForcedSimulationPaused = true;
 
             UIDragHandle dh = (UIDragHandle)this.AddUIComponent(typeof(UIDragHandle)); //Activates the dragging of the window
@@ -50,7 +50,7 @@ namespace Gurkenplayer
                 this.width = 385;
                 this.height = 523;
                 this.relativePosition = new Vector3(700, 270, 0);
-                Log.MessageUnity(String.Format("panel height:{0} width:{1} position x-y-z:{2}-{3}-{4} relposition x-y-z:{5}-{6}-{7} transposition x-y-z:{8}-{9}-{10}", this.height, this.width, this.position.x, this.position.y, this.position.z, this.relativePosition.x, this.relativePosition.y, this.relativePosition.z, this.transformPosition.x, this.transformPosition.y, this.transformPosition.z));
+                Log.Message(String.Format("panel height:{0} width:{1} position x-y-z:{2}-{3}-{4} relposition x-y-z:{5}-{6}-{7} transposition x-y-z:{8}-{9}-{10}", this.height, this.width, this.position.x, this.position.y, this.position.z, this.relativePosition.x, this.relativePosition.y, this.relativePosition.z, this.transformPosition.x, this.transformPosition.y, this.transformPosition.z));
 
                 //Adds all elements to the panel
                 try
@@ -59,12 +59,12 @@ namespace Gurkenplayer
                 }
                 catch (Exception ex)
                 {
-                    Log.ErrorUnity("Populate Error: " + ex.ToString());
+                    Log.Error("Populate Error: " + ex.ToString());
                 }
             }
             catch (Exception ex)
             {
-                Log.ErrorUnity("Error creating Panel: " + ex.ToString());
+                Log.Error("Error creating Panel: " + ex.ToString());
             }
         }
 
@@ -325,24 +325,24 @@ namespace Gurkenplayer
         {
             try
             {
-                Log.MessageUnity(String.Format("Trying to start a lobby on port {0} with the username {1} and password {2}", txt_ClientPort.text, txt_Username.text, txt_Password.text));
+                Log.Message(String.Format("Trying to start a lobby on port {0} with the username {1} and password {2}", txt_ClientPort.text, txt_Username.text, txt_Password.text));
                 //Try to start the server on click
                 Server.Instance.StartServer(port: Convert.ToInt32(txt_ServerPort.text), password: txt_Password.text, maximumPlayerAmount: Convert.ToInt32(txt_ServerPlayers.text));
 
                 if (Server.IsServerStarted)
                 {   //Check if the server is started correctly.
-                    Log.MessageUnity("Server lobby started! Current MPRole is " + GurkenplayerMod.MPRole);
+                    Log.Message("Server lobby started! Current MPRole is " + GurkenplayerMod.MPRole);
                     btn_ClientConnect.Disable();
                     btn_ServerStart.Disable();
                 }
                 else
                 {
-                    Log.MessageUnity("Server lobby could not start.");
+                    Log.Message("Server lobby could not start.");
                 }
             }
             catch (Exception ex)
             {
-                Log.ErrorUnity("Could not start the lobby. Exception: " + ex.ToString());
+                Log.Error("Could not start the lobby. Exception: " + ex.ToString());
             }
         }
 
@@ -355,19 +355,20 @@ namespace Gurkenplayer
         {
             try
             {
-                Log.MessageUnity(String.Format("Trying to connect to {0}:{1} with the username {2} and password {3}", txt_ClientIP.text, txt_ClientPort.text, txt_Username.text, txt_Password.text));
+                Log.MessageUnity(String.Format("Trying to connect to {0}:{1} with the username _{2}_ and password _{3}_", txt_ClientIP.text, txt_ClientPort.text, txt_Username.text, txt_Password.text));
                 //Tries to connect to the server
                 Client.Instance.ConnectToServer(txt_ClientIP.text, Convert.ToInt32(txt_ClientPort.text), txt_Password.text);
 
+                btn_ClientConnect.Disable();
+                btn_ServerStart.Disable();
                 if (Client.IsClientConnected)
                 {   //Check if the client is connected correctly
-                    Log.MessageUnity("You connected to " + txt_ClientIP.text + " Current MPRole is " + GurkenplayerMod.MPRole);
                     btn_ClientConnect.Disable();
                     btn_ServerStart.Disable();
                 }
                 else
                 {
-                    Log.MessageUnity("Could not connect to " + txt_ClientIP.text);
+                    Log.MessageUnity("Could not connect to " + txt_ClientIP.text + " Current MPRole: " + GurkenplayerMod.MPRole);
                 }
             }
             catch (Exception ex)
@@ -383,25 +384,10 @@ namespace Gurkenplayer
         /// <param name="eventParam"></param>
         void btn_Reset_eventClick(UIComponent component, UIMouseEventParameter eventParam)
         {
-            if (GurkenplayerMod.MPRole == MultiplayerRole.Server)
-            {
-                if (Server.IsServerStarted)
-                {
-                    Server.Instance.StopServer();
-                    Log.Warning("Server stopped.");
-                }
-            }
-            else if (GurkenplayerMod.MPRole == MultiplayerRole.Client)
-            {
-                if (Client.IsClientConnected)
-                {
-                    Client.Instance.DisconnectFromServer();
-                    Log.Warning("Client disconnected.");
-                }
-            }
-
+            GurkenplayerMod.MPRole = MultiplayerRole.Resetting;
             btn_ClientConnect.Enable();
             btn_ServerStart.Enable();
+            Log.Message("Reset completed. Current MPRole: " + GurkenplayerMod.MPRole);
         }
     }
 }

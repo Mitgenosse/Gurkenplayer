@@ -117,7 +117,7 @@ namespace Gurkenplayer
         /// </summary>
         private Server()
         {
-            Log.Message("Server constructor.");
+            GurkenplayerMod.MPRole = MultiplayerRole.Server;
             config = new NetPeerConfiguration(appIdentifier);
             config.Port = ServerPort;
             config.MaximumConnections = ServerMaximumPlayerAmount;
@@ -125,15 +125,12 @@ namespace Gurkenplayer
             config.AutoFlushSendQueue = false;
             userList = new List<User>();
             userList.Add(new User("Host", mpRole: MultiplayerRole.Server));
-            Log.Message("approval activated");
         }
         /// <summary>
         /// Destructor logic.
         /// </summary>
         ~Server()
         {
-            //Reset static values just to be sure
-            IsServerStarted = false;
         }
 
         //Methods
@@ -146,6 +143,10 @@ namespace Gurkenplayer
         /// <param name="maximumPlayerAmount">Amount of players. Default: 2</param>
         public void StartServer(int port = 4230, string password = "", int maximumPlayerAmount = 2)
         {
+            Log.Message("Starting the server. IsServerStarted? j -> Instance.StopServer(). Status: " + IsServerStarted);
+            if (IsServerStarted)
+                Instance.StopServer();
+
             if (!IsServerStarted)
             {
                 //Field configuration
@@ -161,13 +162,14 @@ namespace Gurkenplayer
                 server = new NetServer(config);
                 server.Start();
                 IsServerStarted = !IsServerStarted;
-                GurkenplayerMod.MPRole = MultiplayerRole.Server;
-                Log.Message("Server started");
+                
+                Log.Message("Server starting Thread.");
 
                 //Separate thread in which the received messages are handled
                 ParameterizedThreadStart pts = new ParameterizedThreadStart(this.ProcessMessage);
                 Thread thread = new Thread(pts);
                 thread.Start(server);
+                Log.Message("Server started successfuly.");
             }
         }
 
@@ -176,17 +178,37 @@ namespace Gurkenplayer
         /// </summary>
         public void StopServer()
         {
-            if (IsServerInitialized)
-            { //If NetServer is initialized and started, shut it down
-                if (IsServerStarted)
-                {
-                    Log.Message("Shutting down the server");
-                    server.Shutdown("Bye bye Server!");
-                    IsServerStarted = !IsServerStarted;
-                    userList.Clear();
-                    Log.Message("Server shut down");
-                }
+            if (IsServerStarted)
+            {
+                Log.Message("Shutting down the server");
+                Log.Error("ConnectionsCount BeforeShutdown:::" + server.ConnectionsCount.ToString());
+
+                server.Shutdown("Bye bye Server!");
+                IsServerStarted = !IsServerStarted;
+                userList.Clear();
+                Log.Message("Server shut down");
+
+                config = new NetPeerConfiguration(appIdentifier);
+                config.Port = ServerPort;
+                config.MaximumConnections = ServerMaximumPlayerAmount;
+                config.EnableMessageType(NetIncomingMessageType.ConnectionApproval);
+                config.AutoFlushSendQueue = false;
+                Log.Error("ConnectionsCount AfterShutdown:::" + server.ConnectionsCount.ToString());
+
             }
+        }
+
+        /// <summary>
+        /// Gets rid of the Server instance.
+        /// </summary>
+        public void Dispose()
+        {
+            Log.Message("Disposing server. Current MPRole: " + GurkenplayerMod.MPRole);
+            Instance.StopServer();
+            IsServerStarted = false;
+            GurkenplayerMod.MPRole = MultiplayerRole.None;
+            instance = null;
+            Log.Message("Server disposed. Current MPRole: " + GurkenplayerMod.MPRole);
         }
 
         /// <summary>
@@ -195,92 +217,87 @@ namespace Gurkenplayer
         /// <param name="obj">object obj represents a NetServer object.</param>
         private void ProcessMessage(object obj)
         {
-            try
-            {
-                server = (NetServer)obj;
-                NetIncomingMessage msg;
+            server = (NetServer)obj;
+            NetIncomingMessage msg;
 
-                while (IsServerStarted)
-                { //As long as the server is started
-                    while ((msg = server.ReadMessage()) != null)
+            while (IsServerStarted)
+            { //As long as the server is started
+                while ((msg = server.ReadMessage()) != null)
+                {
+                    switch (msg.MessageType)
                     {
-                        switch (msg.MessageType)
-                        {
-                            //Debuggen
-                            #region Debug
-                            case NetIncomingMessageType.VerboseDebugMessage:
-                            case NetIncomingMessageType.DebugMessage:
-                            case NetIncomingMessageType.WarningMessage:
-                            case NetIncomingMessageType.ErrorMessage:
-                                Log.Warning("DebugMessage: " + msg.ReadString());
-                                break;
-                            #endregion
+                        //Debuggen
+                        #region Debug
+                        case NetIncomingMessageType.VerboseDebugMessage:
+                        case NetIncomingMessageType.DebugMessage:
+                        case NetIncomingMessageType.WarningMessage:
+                        case NetIncomingMessageType.ErrorMessage:
+                            Log.Warning("DebugMessage: " + msg.ReadString());
+                            break;
+                        #endregion
 
-                            //StatusChanged
-                            #region NetIncomingMessageType.StatusChanged
-                            case NetIncomingMessageType.StatusChanged:
-                                NetConnectionStatus state = (NetConnectionStatus)msg.ReadByte();
-                                if (state == NetConnectionStatus.Connected)
+                        //StatusChanged
+                        #region NetIncomingMessageType.StatusChanged
+                        case NetIncomingMessageType.StatusChanged:
+                            NetConnectionStatus state = (NetConnectionStatus)msg.ReadByte();
+                            if (state == NetConnectionStatus.Connected)
+                            {
+                                Log.Message("Client connected. Client IP: " + msg.SenderEndPoint);
+                                Log.Error("ConnectionsCount new connected:::" + server.ConnectionsCount.ToString());
+                            }
+                            else if (state == NetConnectionStatus.Disconnected || state == NetConnectionStatus.Disconnecting)
+                            {
+                                User.RemoveFromList(userList, msg.SenderConnection);
+                                Log.Message("Client disconnected. Client IP: " + msg.SenderEndPoint);
+                                Log.Error("ConnectionsCount new disconnect:::" + server.ConnectionsCount.ToString());
+                            }
+                            break;
+                        #endregion
+
+                        //If the message contains data
+                        #region NetIncomingMessageType.Data
+                        case NetIncomingMessageType.Data:
+                            int type = msg.ReadInt32();
+                            ProgressData(type, msg);
+                            break;
+                        #endregion
+
+                        //Connectionapproval
+                        #region NetIncomingMessageType.ConnectionApproval
+                        case NetIncomingMessageType.ConnectionApproval:
+                            //Connection logic. Is the user allowed to connect
+                            //Receive information to process
+                            string sentPassword = msg.ReadString();
+                            string sentUsername = msg.ReadString();
+
+                            if (server.ConnectionsCount <= ServerMaximumPlayerAmount)
+                            {
+                                Log.Warning("User (" + sentUsername + ") trying to connect. Sent password ->" + sentPassword);
+                                if (ServerPassword == sentPassword)
                                 {
-                                    Log.Message("Client connected. Client IP: " + msg.SenderEndPoint);
-                                }
-                                else if (state == NetConnectionStatus.Disconnected || state == NetConnectionStatus.Disconnecting)
-                                {
-                                    User.RemoveFromList(userList, msg.SenderConnection);
-                                    Log.Message("Client disconnected. Client IP: " + msg.SenderEndPoint);
-                                }
-                                break;
-                            #endregion
-
-                            //If the message contains data
-                            #region NetIncomingMessageType.Data
-                            case NetIncomingMessageType.Data:
-                                int type = msg.ReadInt32();
-                                ProgressData(type, msg);
-                                break;
-                            #endregion
-
-                            //Connectionapproval
-                            #region NetIncomingMessageType.ConnectionApproval
-                            case NetIncomingMessageType.ConnectionApproval:
-                                //Connection logic. Is the user allowed to connect
-                                //Receive information to process
-                                string sentPassword = msg.ReadString();
-                                string sentUsername = msg.ReadString();
-
-                                if (userList.Count <= ServerMaximumPlayerAmount)
-                                {
-                                    Log.Warning("User (" + sentUsername + ") trying to connect. Sent password " + sentPassword);
-                                    if (ServerPassword == sentPassword)
-                                    {
-                                        userList.Add(new User(sentUsername, netConnection: msg.SenderConnection));
-                                        msg.SenderConnection.Approve();
-                                        Log.Warning("User (" + sentUsername + ") approved.");
-                                    }
-                                    else
-                                    {
-                                        msg.SenderConnection.Deny();
-                                        Log.Warning("User (" + sentUsername + ") denied. Wrong password.");
-                                    }
+                                    userList.Add(new User(sentUsername, netConnection: msg.SenderConnection));
+                                    msg.SenderConnection.Approve();
+                                    Log.Warning("User (" + sentUsername + ") approved.");
                                 }
                                 else
                                 {
                                     msg.SenderConnection.Deny();
-                                    Log.Warning("User (" + sentUsername + ") denied. Game is full.");
+                                    Log.Warning("User (" + sentUsername + ") denied. Wrong password.");
                                 }
-                                break;
-                            #endregion
+                            }
+                            else
+                            {
+                                msg.SenderConnection.Deny();
+                                Log.Warning("User (" + sentUsername + ") denied. Game is full.");
+                            }
+                            break;
+                        #endregion
 
-                            default:
-                                Log.Warning("Server_ProcessMessage: Unhandled type/message: " + msg.MessageType);
-                                break;
-                        }
+                        default:
+                            Log.Warning("Server_ProcessMessage: Unhandled type/message: " + msg.MessageType);
+                            break;
                     }
                 }
-            }
-            catch (Exception ex)
-            {
-                Log.Error("ProcessMessage error: " + ex.ToString());
             }
         }
         

@@ -12,6 +12,7 @@ namespace Gurkenplayer
     {
         None = 0,
         Server,
-        Client
+        Client,
+        Resetting
     }
 }

@@ -17,7 +17,37 @@ namespace Gurkenplayer
         public static MultiplayerRole MPRole
         {
             get { return GurkenplayerMod.mpRole; }
-            set { GurkenplayerMod.mpRole = value; }
+            set 
+            {
+                if (value == MultiplayerRole.None)
+                {
+                    if (mpRole != MultiplayerRole.None)
+                        mpRole = MultiplayerRole.None;
+                }
+                else if (value == MultiplayerRole.Resetting)
+                {
+                    if (mpRole == MultiplayerRole.Server)
+                        Server.Instance.Dispose();
+                    else if (mpRole == MultiplayerRole.Client)
+                        Client.Instance.Dispose();
+
+                    //MPRole is going to be set to None in the Dispose() methods of each class.
+                }
+                else if (value == MultiplayerRole.Server)
+                {
+                    if (mpRole == MultiplayerRole.Client)
+                        Client.Instance.Dispose();
+                    Log.Message("!!!!!!!!!!!!!!!!!!Client zu Server");
+                    mpRole = value;
+                }
+                else if (value == MultiplayerRole.Client)
+                {
+                    if (mpRole == MultiplayerRole.Server)
+                        Server.Instance.Dispose();
+                    Log.Message("!!!!!!!!!!!!!!!!!!Server zu Client");
+                    mpRole = value;
+                }
+            }
         }
 
         //Necessary properties
