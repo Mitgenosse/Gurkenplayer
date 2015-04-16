@@ -22,7 +22,8 @@ namespace Gurkenplayer
         public static void Error(string s)
         {
             DebugOutputPanel.AddMessage(ColossalFramework.Plugins.PluginManager.MessageType.Error, s);
-            Debug.Log(s);
+            //Debug.Log(s);
+            Debug.LogError(s);
         }
         public static void ErrorUnity(string s)
         {
@@ -32,7 +33,8 @@ namespace Gurkenplayer
         public static void Warning(string s)
         {
             DebugOutputPanel.AddMessage(ColossalFramework.Plugins.PluginManager.MessageType.Warning, s);
-            Debug.Log(s);
+            //Debug.Log(s);
+            Debug.LogWarning(s);
         }
         public static void WarningUnity(string s)
         {

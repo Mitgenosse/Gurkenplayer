@@ -100,6 +100,7 @@ namespace Gurkenplayer
             }
             GurkenplayerMod.MPRole = MultiplayerRole.None;
         }
+
         /// <summary>
         /// Thread: Main
         /// Invoked when the extension deinitializes.
