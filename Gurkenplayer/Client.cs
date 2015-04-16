@@ -26,13 +26,13 @@ namespace Gurkenplayer
         //private static bool isClientInitialized = false;
         static bool isClientConnected = false;
         string username = "usr";
-        bool messageLoopRequestStop = false;
+        //static bool messageLoopRequestStop = false;
 
-        public bool MessageLoopRequestStop
-        {
-            get { return messageLoopRequestStop; }
-            set { messageLoopRequestStop = value; }
-        }
+        //public static bool MessageLoopRequestStop
+        //{
+        //    get { return messageLoopRequestStop; }
+        //    set { messageLoopRequestStop = value; }
+        //}
         Thread messageProcessingThread;
         #endregion
 
@@ -169,34 +169,35 @@ namespace Gurkenplayer
         /// <param name="password">The server password which is used to connect. Default: none</param>
         public void ConnectToServer(string ip = "localhost", int port = 4230, string password = "")
         {
+            //Throw Exception when ip is not valid
+            if (ip != "localhost" && ip.Split('.').Length != 4)
+                throw new ArgumentException("In ConnectToServer()", ip + " is not a valid ip address.");
+
             Log.Message("Client connecting to server. if(IsClientConnected) -> Disconnect...(). IsClientConnected: " + IsClientConnected + " Current MPRole: " + GurkenplayerMod.MPRole);
             if (IsClientConnected)
                 DisconnectFromServer();
 
-            if (!IsClientConnected)
-            {
-                Log.Warning(String.Format("Client trying to connect to ip:{0} port:{1} password:{2} maxretry:{3} retryinterval:{4} MPRole:{5}", ip, port, password, client.Configuration.MaximumHandshakeAttempts, client.Configuration.ResendHandshakeInterval, GurkenplayerMod.MPRole));
+            Log.Warning(String.Format("Client trying to connect to ip:{0} port:{1} password:{2} maxretry:{3} retryinterval:{4} MPRole:{5}", ip, port, password, client.Configuration.MaximumHandshakeAttempts, client.Configuration.ResendHandshakeInterval, GurkenplayerMod.MPRole));
 
-                //Manipulating fields
-                ServerIP = ip;
-                ServerPort = port;
-                ServerPassword = password;
+            //Manipulating fields
+            ServerIP = ip;
+            ServerPort = port;
+            ServerPassword = password;
 
-                //Write approval message with password
-                NetOutgoingMessage approvalMessage = client.CreateMessage();  //Approval message with password
-                approvalMessage.Write(ServerPassword);
-                approvalMessage.Write(Username);
-                client.Start();
-                Log.Message("Client started. Trying to connect.");
-                client.Connect(ServerIP, ServerPort, approvalMessage);
-                Log.Message("after client.Connect. Starting Thread now.");
+            //Write approval message with password
+            NetOutgoingMessage approvalMessage = client.CreateMessage();  //Approval message with password
+            approvalMessage.Write(ServerPassword);
+            approvalMessage.Write(Username);
+            client.Start();
+            Log.Message("Client started. Trying to connect.");
+            client.Connect(ServerIP, ServerPort, approvalMessage);
+            Log.Message("after client.Connect. Starting Thread now.");
 
-                MessageLoopRequestStop = false;
-                //Separate thread in which the received messages are handled
-                ParameterizedThreadStart pts = new ParameterizedThreadStart(this.ProcessMessage);
-                messageProcessingThread = new Thread(pts);
-                messageProcessingThread.Start(client);
-            }
+            //MessageLoopRequestStop = false;
+            //Separate thread in which the received messages are handled
+            ParameterizedThreadStart pts = new ParameterizedThreadStart(this.ProcessMessage);
+            messageProcessingThread = new Thread(pts);
+            messageProcessingThread.Start(client);
             Log.Message("Client should be connected. Current MPRole: " + GurkenplayerMod.MPRole + " MessageProcessingThread alive? " + messageProcessingThread.IsAlive);
         }
         /// <summary>
@@ -211,7 +212,8 @@ namespace Gurkenplayer
             if (messageProcessingThread.IsAlive)
             {
                 Log.Error("Trying to aboard thread. Is alive? " + Instance.messageProcessingThread.IsAlive);
-                messageProcessingThread.Abort();
+                messageProcessingThread.Interrupt();
+                //MessageLoopRequestStop = true;
                 Log.Error("Aborted thread. Is alive? " + Instance.messageProcessingThread.IsAlive);
             }
             
@@ -221,21 +223,24 @@ namespace Gurkenplayer
                 try
                 {
                     client.Disconnect("Bye Bye Client.");
+
+                    IsClientConnected = false;
+                    //MessageLoopRequestStop = true;
+
+                    //Reconfiguration
                     config = new NetPeerConfiguration(appIdentifier);
                     config.MaximumHandshakeAttempts = 1;
                     config.ResendHandshakeInterval = 1;
                     config.AutoFlushSendQueue = false; //client.SendMessage(message, NetDeliveryMethod); is needed for sending
                     client = new NetClient(config);
-                    Log.Message("!!!Disconected");
+                    Log.Error("Disconnected. Is thread still alive? " + Instance.messageProcessingThread.IsAlive);
+
                 }
                 catch (Exception ex)
                 {
                     Log.Error("Client disconnecting error. ex:" + ex.ToString());
                 }
             }
-
-            IsClientConnected = false;
-            MessageLoopRequestStop = true; // Stops the while(true) in ProcessMessage. if(MessageLoopRequestStop) break;
             Log.Message("Client should be disconnected. Current MPRole: " + GurkenplayerMod.MPRole + " MessageProcessingThread still alive? " + messageProcessingThread.IsAlive);
         }
         /// <summary>
@@ -243,12 +248,24 @@ namespace Gurkenplayer
         /// </summary>
         public void Dispose()
         {
-            Log.Message("Disposing client. Current MPRole: " + GurkenplayerMod.MPRole);
-            Instance.DisconnectFromServer();
-            Instance.messageProcessingThread = null;
-            GurkenplayerMod.MPRole = MultiplayerRole.None;
-            instance = null;
-            Log.Message("Client disposed. Current MPRole: " + GurkenplayerMod.MPRole);
+            try
+            {
+                Log.Message("Disposing client. Current MPRole: " + GurkenplayerMod.MPRole);
+                Instance.DisconnectFromServer();
+                if (!IsClientConnected)
+                {
+                    GurkenplayerMod.MPRole = MultiplayerRole.None;
+                    instance = null;
+                }
+                else
+                    throw new Exception("ClientFailedDisposeException");
+                
+                Log.Message("Client disposed. Current MPRole: " + GurkenplayerMod.MPRole);
+            }
+            catch (Exception ex)
+            {
+                Log.Error("Client.Dispose() Exception. " + ex.Message);
+            }
         }
 
         /// <summary>
@@ -270,7 +287,6 @@ namespace Gurkenplayer
 
                     while ((msg = client.ReadMessage()) != null)
                     {
-                        Log.Warning("ProcessMessage client. MessageType: " + msg.MessageType);
                         switch (msg.MessageType)
                         {
                             //Zum debuggen
@@ -292,11 +308,11 @@ namespace Gurkenplayer
                                     IsClientConnected = true;
                                     Log.Message("You connected. Client IP: " + msg.SenderEndPoint);
                                 }
-                                else if (state == NetConnectionStatus.Disconnected || state == NetConnectionStatus.Disconnecting)
+                                else if (state == NetConnectionStatus.Disconnected || state == NetConnectionStatus.Disconnecting || state == NetConnectionStatus.None)
                                 {
                                     IsClientConnected = false;
                                     Log.Message("You disconnected. Client IP: " + msg.SenderEndPoint);
-                                    GurkenplayerMod.MPRole = MultiplayerRole.None;
+                                    GurkenplayerMod.MPRole = MultiplayerRole.Resetting;
                                 }
                                 break;
                             #endregion
@@ -320,7 +336,7 @@ namespace Gurkenplayer
                     }
                 }
                 Log.Warning("Leaving Client Message Progressing Loop");
-                MessageLoopRequestStop = false;
+                ////MessageLoopRequestStop = false;
             }
             catch (Exception ex)
             {

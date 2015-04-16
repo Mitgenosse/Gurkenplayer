@@ -21,8 +21,7 @@ namespace Gurkenplayer
             {
                 if (value == MultiplayerRole.None)
                 {
-                    if (mpRole != MultiplayerRole.None)
-                        mpRole = MultiplayerRole.None;
+                    mpRole = MultiplayerRole.None;
                 }
                 else if (value == MultiplayerRole.Resetting)
                 {
@@ -37,14 +36,14 @@ namespace Gurkenplayer
                 {
                     if (mpRole == MultiplayerRole.Client)
                         Client.Instance.Dispose();
-                    Log.Message("!!!!!!!!!!!!!!!!!!Client zu Server");
+                    Log.Message("MPRole Property: mpRole >" + mpRole + "< and setting value >" + value + "<");
                     mpRole = value;
                 }
                 else if (value == MultiplayerRole.Client)
                 {
                     if (mpRole == MultiplayerRole.Server)
                         Server.Instance.Dispose();
-                    Log.Message("!!!!!!!!!!!!!!!!!!Server zu Client");
+                    Log.Message("MPRole Property: mpRole >" + mpRole + "< and setting value >" + value + "<");
                     mpRole = value;
                 }
             }

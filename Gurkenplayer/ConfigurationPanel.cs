@@ -355,7 +355,7 @@ namespace Gurkenplayer
         {
             try
             {
-                Log.MessageUnity(String.Format("Trying to connect to {0}:{1} with the username _{2}_ and password _{3}_", txt_ClientIP.text, txt_ClientPort.text, txt_Username.text, txt_Password.text));
+                Log.Message(String.Format("Trying to connect to {0}:{1} with the username _{2}_ and password _{3}_", txt_ClientIP.text, txt_ClientPort.text, txt_Username.text, txt_Password.text));
                 //Tries to connect to the server
                 Client.Instance.ConnectToServer(txt_ClientIP.text, Convert.ToInt32(txt_ClientPort.text), txt_Password.text);
 
@@ -368,12 +368,16 @@ namespace Gurkenplayer
                 }
                 else
                 {
-                    Log.MessageUnity("Could not connect to " + txt_ClientIP.text + " Current MPRole: " + GurkenplayerMod.MPRole);
+                    Log.Message("Could not connect to " + txt_ClientIP.text + " Current MPRole: " + GurkenplayerMod.MPRole);
                 }
+            }
+            catch (ArgumentException ex)
+            {
+                Log.Error("ConfigurationPanel client connect argument exception. Message: " + ex.Message);
             }
             catch (Exception ex)
             {
-                Log.ErrorUnity("Could not connect to server. Exception: " + ex.ToString());
+                Log.Error("Could not connect to server. Exception: " + ex.Message);
             }
         }
 
@@ -384,10 +388,17 @@ namespace Gurkenplayer
         /// <param name="eventParam"></param>
         void btn_Reset_eventClick(UIComponent component, UIMouseEventParameter eventParam)
         {
-            GurkenplayerMod.MPRole = MultiplayerRole.Resetting;
-            btn_ClientConnect.Enable();
-            btn_ServerStart.Enable();
-            Log.Message("Reset completed. Current MPRole: " + GurkenplayerMod.MPRole);
+            try
+            {
+                GurkenplayerMod.MPRole = MultiplayerRole.Resetting;
+                btn_ClientConnect.Enable();
+                btn_ServerStart.Enable();
+                Log.Message("Reset completed. Current MPRole: " + GurkenplayerMod.MPRole);
+            }
+            catch(Exception ex)
+            {
+                Log.Error("Reset click Exception. " + ex.Message);
+            }
         }
     }
 }
