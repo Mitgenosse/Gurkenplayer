@@ -314,6 +314,29 @@ namespace Gurkenplayer
             btn_Reset.pressedTextColor = new Color32(204, 0, 0, 255);
             btn_Reset.playAudioEvents = true;
             btn_Reset.eventClick += btn_Reset_eventClick;
+
+            UIButton btn_Close = (UIButton)this.AddUIComponent(typeof(UIButton));
+            btn_Close.text = "Close";
+            btn_Close.width = this.width;
+            btn_Close.height = 22;
+            btn_Close.position = new Vector3(0, -501, 0);
+            btn_Close.normalBgSprite = "ButtonMenu";
+            btn_Close.disabledBgSprite = "ButtonMenuDisabled";
+            btn_Close.hoveredBgSprite = "ButtonMenuHovered";
+            btn_Close.focusedBgSprite = "ButtonMenuFocused";
+            btn_Close.pressedBgSprite = "ButtonMenuPressed";
+            btn_Close.textColor = new Color32(255, 51, 153, 150);
+            btn_Close.disabledTextColor = new Color32(7, 7, 7, 200);
+            btn_Close.hoveredTextColor = new Color32(255, 255, 255, 255);
+            btn_Close.pressedTextColor = new Color32(204, 0, 0, 255);
+            btn_Close.playAudioEvents = true;
+            btn_Close.eventClick += btn_Close_eventClick;
+        }
+
+        void btn_Close_eventClick(UIComponent component, UIMouseEventParameter eventParam)
+        {
+            base.Disable();
+            base.isVisible = false;
         }
 
         /// <summary>

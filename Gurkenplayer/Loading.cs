@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
-//using System.Threading.Tasks;
 using UnityEngine;
 
 namespace Gurkenplayer
@@ -24,17 +23,18 @@ namespace Gurkenplayer
         public override void OnCreated(ILoading loading) //Nachdem man start gedrückt hat
         {
         }
+        
 
         /// <summary>
         /// Thread: Main
         /// Invoked when a level has completed the loading process.
         /// </summary>
-        /// <param name="mode">Defines what kind of level was just loaded.</param>
+        /// <param name="mode">Defines what kind of level was just loaded.</param>*
         public override void OnLevelLoaded(LoadMode mode)
         {
             if (mode != LoadMode.NewGame)
                 return;
-
+            
             loadMode = mode;
 
             try
