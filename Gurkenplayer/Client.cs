@@ -45,6 +45,7 @@ namespace Gurkenplayer
             get { return serverIP; }
             set { serverIP = value; }
         }
+
         /// <summary>
         /// Returns the used server password.
         /// </summary>
@@ -53,6 +54,7 @@ namespace Gurkenplayer
             get { return serverPassword; }
             set { serverPassword = value; }
         }
+
         /// <summary>
         /// Returns the used server port.
         /// </summary>
@@ -61,6 +63,7 @@ namespace Gurkenplayer
             get { return serverPort; }
             set { serverPort = value; }
         }
+
         /// <summary>
         /// Indicates if the client is connected to a server.
         /// </summary>
@@ -69,11 +72,11 @@ namespace Gurkenplayer
             get 
             {
                 if (Instance.client.ConnectionStatus == NetConnectionStatus.Connected)
-                    return true;
+                    return true; //Check first if the ConnectionStatus is set to connected
                 else if (isClientConnected)
-                    return true; //true
+                    return true; //If not check if the bool isClientConnected is set to true
                 else
-                    return false;
+                    return false; //Otherwise it is not connected
             }
             set { Client.isClientConnected = value; }
         }
@@ -129,10 +132,13 @@ namespace Gurkenplayer
         {
             get
             {
-                if (instance == null)
-                    instance = new Client();
+                //Returns the instance if it is not null. If it is, return new instance
+                return instance ?? new Client(); //Test
 
-                return instance;
+                //if (instance == null)
+                //    instance = new Client();
+
+                //return instance;
             }
         }
 
@@ -198,6 +204,7 @@ namespace Gurkenplayer
             messageProcessingThread.Start(client);
             Log.Message("Client should be connected. Current MPRole: " + GurkenplayerMod.MPRole + " MessageProcessingThread alive? " + messageProcessingThread.IsAlive);
         }
+
         /// <summary>
         /// Disconnects the client from the server
         /// </summary>
@@ -241,6 +248,7 @@ namespace Gurkenplayer
             }
             Log.Message("Client should be disconnected. Current MPRole: " + GurkenplayerMod.MPRole + " MessageProcessingThread still alive? " + messageProcessingThread.IsAlive);
         }
+
         /// <summary>
         /// Gets rid of the Client instance.
         /// </summary>
@@ -318,7 +326,7 @@ namespace Gurkenplayer
                             #region NetIncomingMessageType.Data
                             case NetIncomingMessageType.Data:
                                 int type = msg.ReadInt32();
-                                ProgressData(type, msg);
+                                ProgressData((MPMessageType)type, msg); //Test
                                 break;
                             #endregion
 
@@ -375,6 +383,35 @@ namespace Gurkenplayer
                     break;
             }
         }
+        private void ProgressData(MPMessageType msgType, NetIncomingMessage msg)
+        {
+            switch (msgType)
+            {
+                case MPMessageType.MoneyUpdate: //Receiving money
+                    Log.Message("Client received " + msgType);
+                    EcoExtBase._CurrentMoneyAmount = msg.ReadInt64();
+                    EcoExtBase._InternalMoneyAmount = msg.ReadInt64();
+                    break;
+                case MPMessageType.DemandUpdate: //Receiving demand
+                    Log.Message("Client received " + msgType);
+                    DemandExtBase._CommercialDemand = msg.ReadInt32();
+                    DemandExtBase._ResidentalDemand = msg.ReadInt32();
+                    DemandExtBase._WorkplaceDemand = msg.ReadInt32();
+                    break;
+                case MPMessageType.TileUpdate:
+                    Log.Message("Client received " + msgType);
+                    AreaExtBase._XCoordinate = msg.ReadInt32();
+                    AreaExtBase._ZCoordinate = msg.ReadInt32();
+                    //INFO: The unlock process is activated once every 4 seconds simutaniously with the
+                    //EcoExtBase.OnUpdateMoneyAmount(long internalMoneyAmount).
+                    //Maybe I find a direct way to unlock a tile within AreaExtBase
+                    break;
+                default: //Unbehandelte ID
+                    Log.Warning("Client ProgressData: Unhandled ID/type: " + msgType);
+                    break;
+            }
+        }
+
         /// <summary>
         /// Send the EconomyInformation of the client to the server to synchronize.
         /// </summary>
@@ -382,13 +419,14 @@ namespace Gurkenplayer
         {
             if (CanSendMessage)
             {
-                NetOutgoingMessage msg = client.CreateMessage((int)0x2000);
+                NetOutgoingMessage msg = client.CreateMessage((int)MPMessageType.MoneyUpdate);
                 msg.Write(EconomyManager.instance.LastCashAmount);//EcoExtBase._CurrentMoneyAmount
                 msg.Write(EconomyManager.instance.InternalCashAmount);//EcoExtBase._InternalMoneyAmount
                 client.SendMessage(msg, NetDeliveryMethod.ReliableOrdered);
                 client.FlushSendQueue();
             }
         }
+
         /// <summary>
         /// Sends the DemandInformation of the client to the server to synchronize.
         /// </summary>
@@ -396,7 +434,7 @@ namespace Gurkenplayer
         {
             if (CanSendMessage)
             {
-                NetOutgoingMessage msg = client.CreateMessage((int)0x3000);
+                NetOutgoingMessage msg = client.CreateMessage((int)MPMessageType.DemandUpdate);
                 msg.Write(DemandExtBase._CommercialDemand);
                 msg.Write(DemandExtBase._ResidentalDemand);
                 msg.Write(DemandExtBase._WorkplaceDemand);
@@ -405,11 +443,16 @@ namespace Gurkenplayer
             }
         }
 
+        /// <summary>
+        /// Sends a message to the server indicating which tile shall be unlocked.
+        /// </summary>
+        /// <param name="x">X coordinate of the tile.</param>
+        /// <param name="z">Z coordinate of the tile.</param>
         public void SendAreaInformationUpdateToServer(int x, int z)
         {
             if (CanSendMessage)
             {
-                NetOutgoingMessage msg = client.CreateMessage((int)0x4000);
+                NetOutgoingMessage msg = client.CreateMessage((int)MPMessageType.TileUpdate);
                 msg.Write(x);
                 msg.Write(z);
                 client.SendMessage(msg, NetDeliveryMethod.ReliableOrdered);

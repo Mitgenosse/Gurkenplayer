@@ -68,8 +68,8 @@
     <Compile Include="Gurkenplayer.cs" />
     <Compile Include="Loading.cs" />
     <Compile Include="Log.cs" />
+    <Compile Include="MPMessageType.cs" />
     <Compile Include="MultiplayerRole.cs" />
-    <Compile Include="Panel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Server.cs" />
     <Compile Include="EcoExtBase.cs" />

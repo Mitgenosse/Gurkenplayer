@@ -37,6 +37,7 @@ namespace Gurkenplayer
             get { return serverPassword; }
             set { serverPassword = value; }
         }
+
         /// <summary>
         /// Returns the used server port.
         /// </summary>
@@ -45,6 +46,7 @@ namespace Gurkenplayer
             get { return serverPort; }
             set { serverPort = value; }
         }
+
         /// <summary>
         /// Returns the max amount of connections.
         /// </summary>
@@ -53,6 +55,7 @@ namespace Gurkenplayer
             get { return serverMaximumPlayerAmount; }
             set { serverMaximumPlayerAmount = value; }
         }
+
         /// <summary>
         /// Returns true if the server is running.
         /// </summary>
@@ -61,6 +64,7 @@ namespace Gurkenplayer
             get { return Server.isServerStarted; }
             set { Server.isServerStarted = value; }
         }
+
         /// <summary>
         /// Returns true if the server is initialized (instance != null).
         /// </summary>
@@ -74,6 +78,7 @@ namespace Gurkenplayer
                 return false;
             }
         }
+
         /// <summary>
         /// Returns the username.
         /// </summary>
@@ -82,6 +87,7 @@ namespace Gurkenplayer
             get { return username; }
             set { username = value; }
         }
+
         /// <summary>
         /// Returns true if the server is initialized and a client is connected to it.
         /// </summary>
@@ -106,10 +112,13 @@ namespace Gurkenplayer
         {
             get
             {
-                if (instance == null)
-                    instance = new Server();
+                //Returns the instance if it is not null. If it is, return new instance
+                return instance ?? new Server(); //Test
 
-                return instance;
+                //if (instance == null)
+                //    instance = new Server();
+
+                //return instance;
             }
         }
 
@@ -128,6 +137,7 @@ namespace Gurkenplayer
             config.EnableMessageType(NetIncomingMessageType.ConnectionApproval);
             config.AutoFlushSendQueue = false;
         }
+
         /// <summary>
         /// Destructor logic.
         /// </summary>
@@ -275,7 +285,7 @@ namespace Gurkenplayer
                             #region NetIncomingMessageType.Data
                             case NetIncomingMessageType.Data:
                                 int type = msg.ReadInt32();
-                                ProgressData(type, msg);
+                                ProgressData((MPMessageType)type, msg); //Test
                                 break;
                             #endregion
 
@@ -355,6 +365,34 @@ namespace Gurkenplayer
                     break;
             }
         }
+        private void ProgressData(MPMessageType msgType, NetIncomingMessage msg)
+        {
+            switch (msgType)
+            {
+                case MPMessageType.MoneyUpdate: //Receiving money
+                    Log.Message("Server received " + msgType);
+                    EcoExtBase._CurrentMoneyAmount = msg.ReadInt64();
+                    EcoExtBase._InternalMoneyAmount = msg.ReadInt64();
+                    break;
+                case MPMessageType.DemandUpdate: //Receiving demand
+                    Log.Message("Server received " + msgType);
+                    DemandExtBase._CommercialDemand = msg.ReadInt32();
+                    DemandExtBase._ResidentalDemand = msg.ReadInt32();
+                    DemandExtBase._WorkplaceDemand = msg.ReadInt32();
+                    break;
+                case MPMessageType.TileUpdate:
+                    Log.Message("Server received " + msgType);
+                    AreaExtBase._XCoordinate = msg.ReadInt32();
+                    AreaExtBase._ZCoordinate = msg.ReadInt32();
+                    //INFO: The unlock process is activated once every 4 seconds simutaniously with the
+                    //EcoExtBase.OnUpdateMoneyAmount(long internalMoneyAmount).
+                    //Maybe I find a direct way to unlock a tile within AreaExtBase
+                    break;
+                default:
+                    Log.Warning("Server_ProgressData: Unhandled type/message: " + msg.MessageType);
+                    break;
+            }
+        }
 
         /// <summary>
         /// Sends economy update to all.
@@ -363,7 +401,7 @@ namespace Gurkenplayer
         {
             if (CanSendMessage)
             {
-                NetOutgoingMessage msg = server.CreateMessage((int)0x2000);
+                NetOutgoingMessage msg = server.CreateMessage((int)MPMessageType.MoneyUpdate);
                 msg.Write(EconomyManager.instance.LastCashAmount);//EcoExtBase._CurrentMoneyAmount
                 msg.Write(EconomyManager.instance.InternalCashAmount);//EcoExtBase._InternalMoneyAmount
                 server.SendToAll(msg, NetDeliveryMethod.ReliableOrdered);
@@ -378,7 +416,7 @@ namespace Gurkenplayer
         {
             if (CanSendMessage)
             {
-                NetOutgoingMessage msg = server.CreateMessage((int)0x3000);
+                NetOutgoingMessage msg = server.CreateMessage((int)MPMessageType.DemandUpdate);
                 msg.Write(DemandExtBase._CommercialDemand);
                 msg.Write(DemandExtBase._ResidentalDemand);
                 msg.Write(DemandExtBase._WorkplaceDemand);
@@ -396,7 +434,7 @@ namespace Gurkenplayer
         {
             if (CanSendMessage)
             {
-                NetOutgoingMessage msg = server.CreateMessage((int)0x4000);
+                NetOutgoingMessage msg = server.CreateMessage((int)MPMessageType.TileUpdate);
                 msg.Write(x);
                 msg.Write(z);
                 server.SendToAll(msg, NetDeliveryMethod.ReliableOrdered);
