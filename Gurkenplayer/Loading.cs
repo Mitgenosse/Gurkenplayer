@@ -47,29 +47,6 @@ namespace Gurkenplayer
             {
                 Log.Error("Adding UI Error: " + ex.ToString());
             }
-            try
-            {
-                //Log.Message("creating server instance");
-                //Server server = Server.Instance;
-                //server.StartServer();
-                //Log.Message("created server instance");
-                //if(Server.Instance != null)
-                //    Log.Message("server successfully created");
-
-                //Log.Message("creating client instance");
-                //Client client = Client.Instance;
-                //client.ConnectToServer();
-                //Log.Message("Instance created");
-
-                ////Starting a thread to disconnect client and close server in 15-16 seconds after launch
-                //ThreadStart ts = new ThreadStart(disconnectAll);
-                //Thread thread = new Thread(ts);
-                //thread.Start();
-            }
-            catch (Exception ex)
-            {
-                Log.Error("Loading.cs: " + ex.ToString());
-            }
         }
 
         /// <summary>
@@ -90,15 +67,15 @@ namespace Gurkenplayer
         /// </summary>
         public override void OnLevelUnloading()
         {
-            if (GurkenplayerMod.MPRole == MultiplayerRole.Server)
-            {
-                Server.Instance.StopServer();
-            }
-            else if (GurkenplayerMod.MPRole == MultiplayerRole.Client)
-            {
-                Client.Instance.DisconnectFromServer();
-            }
-            GurkenplayerMod.MPRole = MultiplayerRole.None;
+            //if (GurkenplayerMod.MPRole == MultiplayerRole.Server)
+            //{
+            //    Server.Instance.StopServer();
+            //}
+            //else if (GurkenplayerMod.MPRole == MultiplayerRole.Client)
+            //{
+            //    Client.Instance.DisconnectFromServer();
+            //}
+            GurkenplayerMod.MPRole = MultiplayerRole.Resetting;
         }
 
         /// <summary>

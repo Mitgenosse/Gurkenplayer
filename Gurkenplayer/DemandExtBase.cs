@@ -51,6 +51,7 @@ namespace Gurkenplayer
             }
             return originalDemand;
         }
+
         /// <summary>
         /// Invoked when the game calculates residental demand. Value between 0 and 100.
         /// </summary>
@@ -68,6 +69,7 @@ namespace Gurkenplayer
             }
             return originalDemand;
         }
+
         /// <summary>
         /// Invoked when the game calculates workplace demand. Value between 0 and 100.
         /// </summary>

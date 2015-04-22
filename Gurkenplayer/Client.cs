@@ -98,6 +98,7 @@ namespace Gurkenplayer
             get { return username; }
             set { username = value; }
         }
+
         /// <summary>
         /// Returns true when the client is initialized and connected to a server.
         /// </summary>
@@ -105,13 +106,16 @@ namespace Gurkenplayer
         {
             get
             {
-                if (IsClientInitialized)
-                    if (IsClientConnected)
-                        return true;
+                if (IsClientConnected)
+                    return true;
 
                 return false;
             }
         }
+
+        /// <summary>
+        /// Returns the current NetConnectionStatus of the client.
+        /// </summary>
         public NetConnectionStatus ClientConnectionStatus
         {
             get { return client.ConnectionStatus; }
@@ -138,20 +142,14 @@ namespace Gurkenplayer
         /// </summary>
         private Client()
         {
-            try
-            {
-                GurkenplayerMod.MPRole = MultiplayerRole.Client;
-                config = new NetPeerConfiguration(appIdentifier);
-                config.MaximumHandshakeAttempts = 1;
-                config.ResendHandshakeInterval = 1;
-                config.AutoFlushSendQueue = false; //client.SendMessage(message, NetDeliveryMethod); is needed for sending
-                client = new NetClient(config);
-            }
-            catch (Exception ex)
-            {
-                Log.Error(ex.ToString());
-            }
+            GurkenplayerMod.MPRole = MultiplayerRole.Client;
+            config = new NetPeerConfiguration(appIdentifier);
+            config.MaximumHandshakeAttempts = 1;
+            config.ResendHandshakeInterval = 1;
+            config.AutoFlushSendQueue = false; //client.SendMessage(message, NetDeliveryMethod); is needed for sending
+            client = new NetClient(config);
         }
+
         /// <summary>
         /// Destructor logic.
         /// </summary>
