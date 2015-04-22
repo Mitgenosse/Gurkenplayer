@@ -12,36 +12,38 @@ namespace Gurkenplayer
 {
     public class GurkenplayerMod : IUserMod
     {
-        private static MultiplayerRole mpRole = MultiplayerRole.None;
+        private static MPRoleType mpRole = MPRoleType.None;
 
-        public static MultiplayerRole MPRole
+        public static MPRoleType MPRole
         {
             get { return GurkenplayerMod.mpRole; }
             set 
             {
-                if (value == MultiplayerRole.None)
+                if (value == MPRoleType.None)
                 {
-                    mpRole = MultiplayerRole.None;
+                    mpRole = MPRoleType.None;
                 }
-                else if (value == MultiplayerRole.Resetting)
-                {
-                    if (mpRole == MultiplayerRole.Server)
+                else if (value == MPRoleType.Resetting)
+                {   
+                    //There are 2 ways of resetting an Instance of the server or client.
+                    //1: Client/Server.Instance.Dispose(); AND GurkenplayerMod.MPRole = MPRoleType.Resetting;
+                    if (mpRole == MPRoleType.Server)
                         Server.Instance.Dispose();
-                    else if (mpRole == MultiplayerRole.Client)
+                    else if (mpRole == MPRoleType.Client)
                         Client.Instance.Dispose();
 
                     //MPRole is going to be set to None in the Dispose() methods of each class.
                 }
-                else if (value == MultiplayerRole.Server)
+                else if (value == MPRoleType.Server)
                 {
-                    if (mpRole == MultiplayerRole.Client)
+                    if (mpRole == MPRoleType.Client)
                         Client.Instance.Dispose();
                     Log.Message("MPRole Property: mpRole >" + mpRole + "< and setting value >" + value + "<");
                     mpRole = value;
                 }
-                else if (value == MultiplayerRole.Client)
+                else if (value == MPRoleType.Client)
                 {
-                    if (mpRole == MultiplayerRole.Server)
+                    if (mpRole == MPRoleType.Server)
                         Server.Instance.Dispose();
                     Log.Message("MPRole Property: mpRole >" + mpRole + "< and setting value >" + value + "<");
                     mpRole = value;

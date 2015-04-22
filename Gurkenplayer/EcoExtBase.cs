@@ -57,12 +57,12 @@ namespace Gurkenplayer
             }
 
             _internalMoneyAmount = internalMoneyAmount;
-            if (GurkenplayerMod.MPRole == MultiplayerRole.Server)
+            if (GurkenplayerMod.MPRole == MPRoleType.Server)
             {
                 Server.Instance.SendEconomyInformationUpdateToAll();
                 return _internalMoneyAmount;
             }
-            if (GurkenplayerMod.MPRole == MultiplayerRole.Client)
+            if (GurkenplayerMod.MPRole == MPRoleType.Client)
             {
                 Client.Instance.SendEconomyInformationUpdateToServer();
                 return _internalMoneyAmount;
@@ -76,7 +76,7 @@ namespace Gurkenplayer
         /// </summary>
         void SynchronizeMoneyAmount()
         {
-            if (GurkenplayerMod.MPRole == MultiplayerRole.Server)
+            if (GurkenplayerMod.MPRole == MPRoleType.Server)
             {   //If user is a server and there are clients connected, enter the while loop.
                 while (Server.Instance.CanSendMessage)
                 {
@@ -86,7 +86,7 @@ namespace Gurkenplayer
                     Server.Instance.SendEconomyInformationUpdateToAll();
                 }
             }
-            else if (GurkenplayerMod.MPRole == MultiplayerRole.Client)
+            else if (GurkenplayerMod.MPRole == MPRoleType.Client)
             {   //If user is a client and is connected to a server, enter the wile loop.
                 while (Server.Instance.CanSendMessage)
                 {

@@ -148,7 +148,7 @@ namespace Gurkenplayer
         /// </summary>
         private Client()
         {
-            GurkenplayerMod.MPRole = MultiplayerRole.Client;
+            GurkenplayerMod.MPRole = MPRoleType.Client;
             config = new NetPeerConfiguration(appIdentifier);
             config.MaximumHandshakeAttempts = 1;
             config.ResendHandshakeInterval = 1;
@@ -260,7 +260,7 @@ namespace Gurkenplayer
                 Instance.DisconnectFromServer();
                 if (!IsClientConnected)
                 {
-                    GurkenplayerMod.MPRole = MultiplayerRole.None;
+                    GurkenplayerMod.MPRole = MPRoleType.None;
                     instance = null;
                 }
                 else
@@ -288,7 +288,7 @@ namespace Gurkenplayer
 
                 while (true)
                 {
-                    if (GurkenplayerMod.MPRole != MultiplayerRole.Client)
+                    if (GurkenplayerMod.MPRole != MPRoleType.Client)
                         break;
 
                     while ((msg = client.ReadMessage()) != null)
@@ -318,7 +318,7 @@ namespace Gurkenplayer
                                 {
                                     IsClientConnected = false;
                                     Log.Message("You disconnected. Client IP: " + msg.SenderEndPoint);
-                                    GurkenplayerMod.MPRole = MultiplayerRole.Resetting;
+                                    GurkenplayerMod.MPRole = MPRoleType.Resetting;
                                 }
                                 break;
                             #endregion

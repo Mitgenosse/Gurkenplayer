@@ -128,7 +128,7 @@ namespace Gurkenplayer
         /// </summary>
         private Server()
         {
-            GurkenplayerMod.MPRole = MultiplayerRole.Server;
+            GurkenplayerMod.MPRole = MPRoleType.Server;
             pts = new ParameterizedThreadStart(this.ProcessMessage);
             messageHandleThread = new Thread(pts);
             config = new NetPeerConfiguration(appIdentifier);
@@ -221,7 +221,7 @@ namespace Gurkenplayer
 
                 if (!IsServerStarted)
                 {
-                    GurkenplayerMod.MPRole = MultiplayerRole.None;
+                    GurkenplayerMod.MPRole = MPRoleType.None;
                     instance = null;
                 }
                 else

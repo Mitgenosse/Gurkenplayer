@@ -11,7 +11,7 @@ namespace Gurkenplayer
         //Field
         string username;
         NetConnection netConnection;
-        MultiplayerRole mpRole;
+        MPRoleType mpRole;
 
         //Properties
         public string Username
@@ -24,14 +24,14 @@ namespace Gurkenplayer
             get { return netConnection; }
             set { netConnection = value; }
         }
-        public MultiplayerRole MPRole
+        public MPRoleType MPRole
         {
             get { return mpRole; }
             set { mpRole = value; }
         }
 
         //Constructor
-        public User(string username, NetConnection netConnection = null, MultiplayerRole mpRole = MultiplayerRole.Client)
+        public User(string username, NetConnection netConnection = null, MPRoleType mpRole = MPRoleType.Client)
         {
             this.username = username;
             this.netConnection = NetConnection;

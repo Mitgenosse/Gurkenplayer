@@ -39,12 +39,12 @@ namespace Gurkenplayer
         /// <returns>Modified demand.</returns>
         public override int OnCalculateCommercialDemand(int originalDemand)
         { 
-            if (GurkenplayerMod.MPRole == MultiplayerRole.Server) //Update all
+            if (GurkenplayerMod.MPRole == MPRoleType.Server) //Update all
             {
                 Server.Instance.SendDemandInformationUpdateToAll();
                 return _commercialDemand;
             }
-            else if (GurkenplayerMod.MPRole == MultiplayerRole.Client)
+            else if (GurkenplayerMod.MPRole == MPRoleType.Client)
             {
                 Client.Instance.SendDemandInformationUpdateToServer();
                 return _commercialDemand;
@@ -59,11 +59,11 @@ namespace Gurkenplayer
         /// <returns>Modified demand.</returns>
         public override int OnCalculateResidentialDemand(int originalDemand)
         {
-            if (GurkenplayerMod.MPRole == MultiplayerRole.Server)
+            if (GurkenplayerMod.MPRole == MPRoleType.Server)
             {
                 return _residentalDemand;
             }
-            else if (GurkenplayerMod.MPRole == MultiplayerRole.Client)
+            else if (GurkenplayerMod.MPRole == MPRoleType.Client)
             {
                 return _residentalDemand;
             }
@@ -77,11 +77,11 @@ namespace Gurkenplayer
         /// <returns>Modified demand.</returns>
         public override int OnCalculateWorkplaceDemand(int originalDemand)
         {
-            if (GurkenplayerMod.MPRole == MultiplayerRole.Server)
+            if (GurkenplayerMod.MPRole == MPRoleType.Server)
             {
                 return _workplaceDemand;
             }
-            else if (GurkenplayerMod.MPRole == MultiplayerRole.Client)
+            else if (GurkenplayerMod.MPRole == MPRoleType.Client)
             {
                 return _workplaceDemand;
             }

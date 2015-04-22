@@ -49,13 +49,13 @@ namespace Gurkenplayer
         /// <param name="z">Z coordinate of the new tile.</param>
         public override void OnUnlockArea(int x, int z)
         {
-            if (GurkenplayerMod.MPRole == MultiplayerRole.Server)
+            if (GurkenplayerMod.MPRole == MPRoleType.Server)
             {
                 managers.areas.UnlockArea(x, z, true);
                 Server.Instance.SendAreaInformationUpdateToAll(x, z);
                 //Send unlocked area to clients
             }
-            else if (GurkenplayerMod.MPRole == MultiplayerRole.Client)
+            else if (GurkenplayerMod.MPRole == MPRoleType.Client)
             {
                 managers.areas.UnlockArea(x, z, true);
                 Client.Instance.SendAreaInformationUpdateToServer(x, z);

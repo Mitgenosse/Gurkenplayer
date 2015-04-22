@@ -373,7 +373,7 @@ namespace Gurkenplayer
         /// Connects to the server eventClick event.
         /// </summary>
         /// <param name="component">Triggered UIComponent.</param>
-        /// <param name="eventParam"></param>
+        /// <param name="eventParam">Mouseinformaion.</param>
         void btn_ClientConnect_eventClick(UIComponent component, UIMouseEventParameter eventParam)
         {
             try
@@ -408,12 +408,12 @@ namespace Gurkenplayer
         /// Resets everything eventClick event.
         /// </summary>
         /// <param name="component">Triggered UIComponent.</param>
-        /// <param name="eventParam"></param>
+        /// <param name="eventParam">Mouseinformaion.</param>
         void btn_Reset_eventClick(UIComponent component, UIMouseEventParameter eventParam)
         {
             try
             {
-                GurkenplayerMod.MPRole = MultiplayerRole.Resetting;
+                GurkenplayerMod.MPRole = MPRoleType.Resetting;
                 btn_ClientConnect.Enable();
                 btn_ServerStart.Enable();
                 Log.Message("Reset completed. Current MPRole: " + GurkenplayerMod.MPRole);

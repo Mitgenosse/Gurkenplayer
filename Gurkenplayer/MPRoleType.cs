@@ -8,11 +8,11 @@ namespace Gurkenplayer
     /// <summary>
     /// MultiplayerRole indicates the current role of the player.
     /// </summary>
-    public enum MultiplayerRole
+    public enum MPRoleType
     {
         None = 0,
         Server,
         Client,
-        Resetting
+        Resetting //Resetting is used to dispose the current instance. 
     }
 }

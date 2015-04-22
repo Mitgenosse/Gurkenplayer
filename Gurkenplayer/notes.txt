@@ -1,7 +1,7 @@
 ﻿Coop or competitive/independent mode?
 
 COOP:
--stuff to synchronize
+==stuff to synchronize
 ->money (current account balance, profit and loss, loan)	==OK EcoExtBase.cs
 ->citizens
 ->area demand												==OK DemandExtBase.cs
@@ -10,11 +10,17 @@ COOP:
 ->current and bought tiles
 ->???
 
-Competitive/Independent mode
--stuff to synchronize
+Competative/Independent mode 
+==stuff to synchronize
 ->buildings and streets (and removal of both)
 ->current speed and time									==Half ok. Only same speed.
 ->???
+
+International mode (competative/multiplayer leaderboard)
+->Leaderboard with important information about the player
+->Many players can play
+->Possible player interactions could be sending money, etc.
+->Not much to sync
 
 ToDo for both:
 -Create a configuration window at the start of the game
@@ -32,8 +38,8 @@ Current procedure:
 -on level load force stop the game
 -open window where you can create a server lobby or connect to a game. (Configuration)
 -you have to configure the amount of connections in setup
--open server and wait till its full
--if it is full, show a message on server with 'start game'
+-open server and wait till its full/startable
+-if it is full/startable, show a message on server with 'start game'
 -onclick remove force stop of the game
 -play
 
@@ -41,3 +47,4 @@ Resources:
 http://docs.skylinesmodding.com/en/master/general/index.html
 https://github.com/SkylinesModding/Docs
 http://www.skylineswiki.com/Modding_API
+http://www.skylinesmodding.com

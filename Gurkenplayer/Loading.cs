@@ -75,7 +75,7 @@ namespace Gurkenplayer
             //{
             //    Client.Instance.DisconnectFromServer();
             //}
-            GurkenplayerMod.MPRole = MultiplayerRole.Resetting;
+            GurkenplayerMod.MPRole = MPRoleType.Resetting;
         }
 
         /// <summary>
@@ -87,13 +87,13 @@ namespace Gurkenplayer
             if (uiComponent != null)
                 UnityEngine.Object.Destroy(uiComponent);
 
-            if (GurkenplayerMod.MPRole != MultiplayerRole.None)
+            if (GurkenplayerMod.MPRole != MPRoleType.None)
             {
-                if (GurkenplayerMod.MPRole == MultiplayerRole.Server)
+                if (GurkenplayerMod.MPRole == MPRoleType.Server)
                 {
                     Server.Instance.StopServer();
                 }
-                else if (GurkenplayerMod.MPRole == MultiplayerRole.Client)
+                else if (GurkenplayerMod.MPRole == MPRoleType.Client)
                 {
                     Client.Instance.DisconnectFromServer();
                 }
