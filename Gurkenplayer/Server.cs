@@ -113,7 +113,7 @@ namespace Gurkenplayer
             get
             {
                 //Returns the instance if it is not null. If it is, return new instance
-                return instance ?? new Server(); //Test
+                return instance ?? (instance = new Server()); //Test
 
                 //if (instance == null)
                 //    instance = new Server();
