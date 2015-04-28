@@ -352,7 +352,7 @@ namespace Gurkenplayer
                 //Try to start the server on click
                 Server.Instance.StartServer(port: Convert.ToInt32(txt_ServerPort.text), password: txt_Password.text, maximumPlayerAmount: Convert.ToInt32(txt_ServerPlayers.text));
 
-                if (Server.IsServerStarted)
+                if (!Server.StopServer)
                 {   //Check if the server is started correctly.
                     Log.Message("Server lobby started! Current MPRole is " + GurkenplayerMod.MPRole);
                     btn_ClientConnect.Disable();

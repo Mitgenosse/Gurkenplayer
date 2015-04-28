@@ -50,32 +50,16 @@ namespace Gurkenplayer
         }
 
         /// <summary>
-        /// Method in second thread to disconnect and stop server and client.
-        /// </summary>
-        private void disconnectAll()
-        {
-            Thread.Sleep(15000);
-            Client.Instance.DisconnectFromServer();
-            Thread.Sleep(1000);
-            Server.Instance.StopServer();
-        }
-
-        /// <summary>
         /// Thread: Main
         /// Invoked when the level is unloading (typically when going back to the main menu
         /// or prior to loading a new level)
         /// </summary>
         public override void OnLevelUnloading()
         {
-            //if (GurkenplayerMod.MPRole == MultiplayerRole.Server)
-            //{
-            //    Server.Instance.StopServer();
-            //}
-            //else if (GurkenplayerMod.MPRole == MultiplayerRole.Client)
-            //{
-            //    Client.Instance.DisconnectFromServer();
-            //}
             GurkenplayerMod.MPRole = MPRoleType.Resetting;
+
+            if (uiComponent != null)
+                UnityEngine.Object.Destroy(uiComponent);
         }
 
         /// <summary>
@@ -84,20 +68,10 @@ namespace Gurkenplayer
         /// </summary>
         public override void OnReleased()
         {
+            GurkenplayerMod.MPRole = MPRoleType.Resetting;
+
             if (uiComponent != null)
                 UnityEngine.Object.Destroy(uiComponent);
-
-            if (GurkenplayerMod.MPRole != MPRoleType.None)
-            {
-                if (GurkenplayerMod.MPRole == MPRoleType.Server)
-                {
-                    Server.Instance.StopServer();
-                }
-                else if (GurkenplayerMod.MPRole == MPRoleType.Client)
-                {
-                    Client.Instance.DisconnectFromServer();
-                }
-            }
         }
     }
 }

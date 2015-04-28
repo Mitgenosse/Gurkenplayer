@@ -32,7 +32,10 @@ namespace Gurkenplayer
                     else if (mpRole == MPRoleType.Client)
                         Client.Instance.Dispose();
 
-                    //MPRole is going to be set to None in the Dispose() methods of each class.
+                    //MPRole is going to be set to None in the Dispose() methods of each class. 
+                    //And if not:
+                    if(mpRole != MPRoleType.None)
+                        mpRole = value;
                 }
                 else if (value == MPRoleType.Server)
                 {
@@ -51,6 +54,12 @@ namespace Gurkenplayer
             }
         }
 
+        private static bool isDebugging = false;
+        public static bool IsDebugging
+        {
+            get { return isDebugging; }
+            set { isDebugging = value; }
+        }
         //Necessary properties
         public string Description
         {
@@ -62,14 +71,4 @@ namespace Gurkenplayer
             get { return "Gurkenplayer"; }
         }
     }
-    
 }
-/* if (GurkenplayerMod.MPRole == MultiplayerRole.Server)
-   {
-
-   }
-   else if (GurkenplayerMod.MPRole == MultiplayerRole.Client)
-   {
-
-   }
- */

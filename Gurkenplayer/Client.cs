@@ -175,7 +175,7 @@ namespace Gurkenplayer
         {
             //Throw Exception when ip is not valid
             if (ip != "localhost" && ip.Split('.').Length != 4)
-                throw new ArgumentException("In ConnectToServer()", ip + " is not a valid ip address.");
+                throw new MPException("Exception in Client.ConnectToServer()", new Exception("Invalid address"));
 
             Log.Message("Client connecting to server. if(IsClientConnected) -> Disconnect...(). IsClientConnected: " + IsClientConnected + " Current MPRole: " + GurkenplayerMod.MPRole);
             if (IsClientConnected)
@@ -197,7 +197,7 @@ namespace Gurkenplayer
             client.Connect(ServerIP, ServerPort, approvalMessage);
             Log.Message("after client.Connect. Starting Thread now.");
 
-            //MessageLoopRequestStop = false;
+            IsClientConnected = true;
             //Separate thread in which the received messages are handled
             ParameterizedThreadStart pts = new ParameterizedThreadStart(this.ProcessMessage);
             messageProcessingThread = new Thread(pts);
@@ -217,8 +217,14 @@ namespace Gurkenplayer
             if (messageProcessingThread.IsAlive)
             {
                 Log.Error("Trying to aboard thread. Is alive? " + Instance.messageProcessingThread.IsAlive);
-                messageProcessingThread.Interrupt();
-                //MessageLoopRequestStop = true;
+                try
+                {
+                    messageProcessingThread.Interrupt();
+                }
+                catch (Exception)
+                {
+
+                }
                 Log.Error("Aborted thread. Is alive? " + Instance.messageProcessingThread.IsAlive);
             }
             
@@ -230,7 +236,6 @@ namespace Gurkenplayer
                     client.Disconnect("Bye Bye Client.");
 
                     IsClientConnected = false;
-                    //MessageLoopRequestStop = true;
 
                     //Reconfiguration
                     config = new NetPeerConfiguration(appIdentifier);
@@ -239,7 +244,6 @@ namespace Gurkenplayer
                     config.AutoFlushSendQueue = false; //client.SendMessage(message, NetDeliveryMethod); is needed for sending
                     client = new NetClient(config);
                     Log.Error("Disconnected. Is thread still alive? " + Instance.messageProcessingThread.IsAlive);
-
                 }
                 catch (Exception ex)
                 {
@@ -263,14 +267,12 @@ namespace Gurkenplayer
                     GurkenplayerMod.MPRole = MPRoleType.None;
                     instance = null;
                 }
-                else
-                    throw new Exception("ClientFailedDisposeException");
                 
                 Log.Message("Client disposed. Current MPRole: " + GurkenplayerMod.MPRole);
             }
             catch (Exception ex)
             {
-                Log.Error("Client.Dispose() Exception. " + ex.Message);
+                throw new MPException("Exception in Client.Dispose()", ex);
             }
         }
 
@@ -342,11 +344,10 @@ namespace Gurkenplayer
                     }
                 }
                 Log.Warning("Leaving Client Message Progressing Loop");
-                ////MessageLoopRequestStop = false;
             }
             catch (Exception ex)
             {
-                Log.Error("Client ProcessMessage Exception: " + ex.ToString());
+                throw new MPException("Exception in Client.ProcessMessage()", ex);
             }
         }
         

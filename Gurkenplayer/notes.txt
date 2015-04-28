@@ -43,6 +43,8 @@ Current procedure:
 -onclick remove force stop of the game
 -play
 
+SimulationManager.instance.isSimulationPaused
+
 Resources:
 http://docs.skylinesmodding.com/en/master/general/index.html
 https://github.com/SkylinesModding/Docs
