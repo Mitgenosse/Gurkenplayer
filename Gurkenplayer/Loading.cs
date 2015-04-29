@@ -23,7 +23,6 @@ namespace Gurkenplayer
         public override void OnCreated(ILoading loading) //Nachdem man start gedrückt hat
         {
         }
-        
 
         /// <summary>
         /// Thread: Main

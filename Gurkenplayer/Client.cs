@@ -12,8 +12,23 @@ using ColossalFramework;
 
 namespace Gurkenplayer
 {
+    public delegate void ClientEventHandler(object sender, EventArgs e);
     public class Client : IDisposable
     {
+        public event ClientEventHandler clientConnectedEvent;
+        public event ClientEventHandler clientDisconnectedEvent;
+
+        public virtual void OnClientConnected(EventArgs e)
+        {
+            if (clientConnectedEvent != null)
+                clientConnectedEvent(this, e);
+        }
+        public virtual void OnClientDisconnected(EventArgs e)
+        {
+            if (clientDisconnectedEvent != null)
+                clientDisconnectedEvent(this, e);
+        }
+
         //Fields
         #region Fields
         static Client instance;
@@ -162,7 +177,6 @@ namespace Gurkenplayer
             config.AutoFlushSendQueue = false; //client.SendMessage(message, NetDeliveryMethod); is needed for sending
             client = new NetClient(config);
             pts = new ParameterizedThreadStart(this.ProcessMessage);
-            messageProcessingThread = new Thread(pts);
             GurkenplayerMod.MPRole = MPRoleType.Client;
         }
 
@@ -184,9 +198,8 @@ namespace Gurkenplayer
         /// <param name="password">The server password which is used to connect. Default: none</param>
         public void ConnectToServer(string ip = "localhost", int port = 4230, string password = "")
         {
-            Log.Message("Client connecting to server. if(IsClientConnected) -> Disconnect...(). IsClientConnected: " + IsClientConnected + " Current MPRole: " + GurkenplayerMod.MPRole);
-            if (IsClientConnected)
-                DisconnectFromServer();
+            Log.Message("Client connecting to server. if(IsClientConnected) -> Disconnect...(): " + IsClientConnected + ". IsClientConnected: " + IsClientConnected + " Current MPRole: " + GurkenplayerMod.MPRole);
+            DisconnectFromServer();
 
             //Throw Exception when ip is not valid
             if (ip != "localhost" && ip.Split('.').Length != 4)
@@ -212,7 +225,11 @@ namespace Gurkenplayer
             StopMessageProcessingThread = false;
 
             //Separate thread in which the received messages are handled
+            messageProcessingThread = new Thread(pts);
             messageProcessingThread.Start(client);
+
+            //Raise event if available
+            OnClientConnected(new EventArgs());
             Log.Message("Client should be connected. Current MPRole: " + GurkenplayerMod.MPRole + " MessageProcessingThread alive? " + messageProcessingThread.IsAlive);
         }
 
@@ -225,25 +242,6 @@ namespace Gurkenplayer
                 return; //If client is not  connected, return
 
             Log.Message("Disconnecting from the server. Current MPRole: " + GurkenplayerMod.MPRole);
-
-            /* TEST */
-            //Checks if the messageprocessingThread is alive/running
-            Log.Error("Is MessageProcessingThread alive? " + messageProcessingThread.IsAlive);
-            //if (messageProcessingThread.IsAlive)
-            //{
-            //    Log.Error("Trying to aboard thread. Is alive? " + Instance.messageProcessingThread.IsAlive);
-            //    try
-            //    {
-            //        //messageProcessingThread.Interrupt();
-            //        StopMessageProcessingThread = true; //Terminate gracefully
-            //    }
-            //    catch (Exception)
-            //    {
-            //        //Interrupt() always trows an exception. There is no need to catch
-            //    }
-            //    //Log.Error("Aborted thread. Is alive? " + Instance.messageProcessingThread.IsAlive);
-            //}
-            /* END TEST */
 
             try
             {
@@ -265,6 +263,8 @@ namespace Gurkenplayer
                 IsClientConnected = false;
                 if (messageProcessingThread.IsAlive)
                     StopMessageProcessingThread = true;
+
+                OnClientDisconnected(new EventArgs());
 
                 Log.Error("Disconnected. Is thread still alive? " + Instance.messageProcessingThread.IsAlive);
             }
@@ -337,12 +337,15 @@ namespace Gurkenplayer
                                 if (state == NetConnectionStatus.Connected)
                                 {
                                     IsClientConnected = true;
+                                    OnClientConnected(new EventArgs());
                                     Log.Message("You connected. Client IP: " + msg.SenderEndPoint);
                                 }
                                 else if (state == NetConnectionStatus.Disconnected || state == NetConnectionStatus.Disconnecting || state == NetConnectionStatus.None)
                                 {
                                     IsClientConnected = false;
+                                    StopMessageProcessingThread = true;
                                     Log.Message("You disconnected. Client IP: " + msg.SenderEndPoint);
+                                    OnClientDisconnected(new EventArgs());
                                     GurkenplayerMod.MPRole = MPRoleType.Resetting;
                                 }
                                 break;
@@ -350,7 +353,7 @@ namespace Gurkenplayer
 
                             #region NetIncomingMessageType.Data
                             case NetIncomingMessageType.Data:
-                                int type = msg.ReadInt32();
+                                byte type = msg.ReadByte();
                                 ProgressData((MPMessageType)type, msg); //Test
                                 break;
                             #endregion
@@ -449,7 +452,7 @@ namespace Gurkenplayer
         {
             if (CanSendMessage)
             {
-                NetOutgoingMessage msg = client.CreateMessage((int)MPMessageType.MoneyUpdate);
+                NetOutgoingMessage msg = client.CreateMessage((byte)MPMessageType.MoneyUpdate);
                 msg.Write(EconomyManager.instance.LastCashAmount);//EcoExtBase._CurrentMoneyAmount
                 msg.Write(EconomyManager.instance.InternalCashAmount);//EcoExtBase._InternalMoneyAmount
                 client.SendMessage(msg, NetDeliveryMethod.ReliableOrdered);
@@ -464,7 +467,7 @@ namespace Gurkenplayer
         {
             if (CanSendMessage)
             {
-                NetOutgoingMessage msg = client.CreateMessage((int)MPMessageType.DemandUpdate);
+                NetOutgoingMessage msg = client.CreateMessage((byte)MPMessageType.DemandUpdate);
                 msg.Write(DemandExtBase._CommercialDemand);
                 msg.Write(DemandExtBase._ResidentalDemand);
                 msg.Write(DemandExtBase._WorkplaceDemand);
@@ -482,7 +485,7 @@ namespace Gurkenplayer
         {
             if (CanSendMessage)
             {
-                NetOutgoingMessage msg = client.CreateMessage((int)MPMessageType.TileUpdate);
+                NetOutgoingMessage msg = client.CreateMessage((byte)MPMessageType.TileUpdate);
                 msg.Write(x);
                 msg.Write(z);
                 client.SendMessage(msg, NetDeliveryMethod.ReliableOrdered);

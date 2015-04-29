@@ -9,7 +9,7 @@ namespace Gurkenplayer
 {
     public static class Log
     {
-        private static bool isDebugging = false;
+        private static bool isDebugging = true;
         /// <summary>
         /// Indicates the current debug mode. The Log class uses this for example.
         /// </summary>
@@ -27,7 +27,7 @@ namespace Gurkenplayer
         {
             if (IsDebugging)
             {
-                DebugOutputPanel.AddMessage(ColossalFramework.Plugins.PluginManager.MessageType.Message, "[MPMOD]:" + s);
+                //DebugOutputPanel.AddMessage(ColossalFramework.Plugins.PluginManager.MessageType.Message, "[MPMOD]:" + s);
                 Debug.Log("[MPMOD]:" + s);
             }
         }
@@ -40,7 +40,7 @@ namespace Gurkenplayer
         {
             if (IsDebugging)
             {
-                DebugOutputPanel.AddMessage(ColossalFramework.Plugins.PluginManager.MessageType.Warning, "[MPMOD]:" + s);
+                //DebugOutputPanel.AddMessage(ColossalFramework.Plugins.PluginManager.MessageType.Warning, "[MPMOD]:" + s);
                 Debug.LogWarning("[MPMOD]:" + s);
             }
         }
@@ -53,7 +53,7 @@ namespace Gurkenplayer
         {
             if (IsDebugging)
             {
-                DebugOutputPanel.AddMessage(ColossalFramework.Plugins.PluginManager.MessageType.Error, "[MPMOD]:" + s);
+                //DebugOutputPanel.AddMessage(ColossalFramework.Plugins.PluginManager.MessageType.Error, "[MPMOD]:" + s);
                 Debug.LogError("[MPMOD]:" + s);
             }
         }

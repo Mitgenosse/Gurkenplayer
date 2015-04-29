@@ -13,6 +13,9 @@ namespace Gurkenplayer
         None = 0,
         MoneyUpdate,
         DemandUpdate,
-        TileUpdate
+        TileUpdate,
+        StreetUpdate,
+        TimeUpdate,
+        PopulationUpdate
     }
 }

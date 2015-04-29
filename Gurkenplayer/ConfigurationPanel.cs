@@ -46,8 +46,6 @@ namespace Gurkenplayer
         //Methods
         public override void Start()
         {
-            SimulationManager.instance.ForcedSimulationPaused = true;
-
             UIDragHandle dh = (UIDragHandle)this.AddUIComponent(typeof(UIDragHandle)); //Activates the dragging of the window
 
             try
@@ -79,7 +77,33 @@ namespace Gurkenplayer
 
         public override void Update()
         {
-            SimulationManager.instance.ForcedSimulationPaused = (IsConfigurationFinished) ? false : true;
+            if (Input.GetKey(KeyCode.LeftControl))
+            {
+                if (Input.GetKeyDown(KeyCode.D))
+                {
+                    Log.IsDebugging = !Log.IsDebugging;
+                    Log.Message((Log.IsDebugging) ? "Log.IsDebugging is true." : "Log.IsDebugging is false");
+                }
+
+                if (Input.GetKeyDown(KeyCode.S))
+                {
+                    if(Server.IsServerInitialized && Server.IsServerStarted)
+                        Server.Instance.Stop();
+                }
+
+                if (Input.GetKeyDown(KeyCode.B))
+                {
+                    if (GurkenplayerMod.MPRole == MPRoleType.Client)
+                        Log.Message(String.Format(">B>Status: Current MPRoleType: {0}; IsClientConnected: {1}; Client StopMessageProcessThread : {2};", GurkenplayerMod.MPRole, Client.IsClientConnected, Client.StopMessageProcessingThread));
+                    else if (GurkenplayerMod.MPRole == MPRoleType.Server)
+                        Log.Message(String.Format(">B>Status: Current MPRoleType: {0}; IsServerStarted: {1}; Server StopMessageProcessThread : {2};", GurkenplayerMod.MPRole, Server.IsServerStarted, Server.StopMessageProcessingThread));
+                    else if (GurkenplayerMod.MPRole == MPRoleType.Resetting)
+                        Log.Message("GurkenplayerMod.MPRole is Resetting");
+                    else
+                        Log.Message("No information provided");
+                }
+            }
+            SimulationManager.instance.ForcedSimulationPaused = (IsConfigurationFinished) ? true : false;
         }
 
         /// <summary>
@@ -87,8 +111,8 @@ namespace Gurkenplayer
         /// </summary>
         public override void OnDisable()
         {
-            base.OnDisable();
             IsConfigurationFinished = true;
+            //SimulationManager.instance.ForcedSimulationPaused = (IsConfigurationFinished) ? false : true;
         }
 
         /// <summary>
@@ -347,12 +371,6 @@ namespace Gurkenplayer
             btn_Close.eventClick += btn_Close_eventClick;
         }
 
-        void btn_Close_eventClick(UIComponent component, UIMouseEventParameter eventParam)
-        {
-            base.Disable();
-            base.isVisible = false;
-        }
-
         /// <summary>
         /// Starts the server eventClick event.
         /// </summary>
@@ -360,13 +378,14 @@ namespace Gurkenplayer
         /// <param name="eventParam"></param>
         void btn_ServerStart_eventClick(UIComponent component, UIMouseEventParameter eventParam)
         {
+            Server.Instance.serverStoppedEvent += Instance_serverStoppedEvent;
             try
             {
                 Log.Message(String.Format("Trying to start a lobby on port {0} with the username {1} and password {2}", txt_ClientPort.text, txt_Username.text, txt_Password.text));
                 //Try to start the server on click
                 Server.Instance.StartServer(port: Convert.ToInt32(txt_ServerPort.text), password: txt_Password.text, maximumPlayerAmount: Convert.ToInt32(txt_ServerPlayers.text));
 
-                if (!Server.StopMessageProcessingThread)
+                if (Server.IsServerStarted)
                 {   //Check if the server is started correctly.
                     Log.Message("Server lobby started! Current MPRole is " + GurkenplayerMod.MPRole);
                     btn_ClientConnect.Disable();
@@ -390,14 +409,13 @@ namespace Gurkenplayer
         /// <param name="eventParam">Mouseinformaion.</param>
         void btn_ClientConnect_eventClick(UIComponent component, UIMouseEventParameter eventParam)
         {
+            Client.Instance.clientDisconnectedEvent += Instance_clientDisconnectedEvent;
             try
             {
                 Log.Message(String.Format("Trying to connect to {0}:{1} with the username _{2}_ and password _{3}_", txt_ClientIP.text, txt_ClientPort.text, txt_Username.text, txt_Password.text));
                 //Tries to connect to the server
                 Client.Instance.ConnectToServer(txt_ClientIP.text, Convert.ToInt32(txt_ClientPort.text), txt_Password.text);
 
-                btn_ClientConnect.Disable();
-                btn_ServerStart.Disable();
                 if (Client.IsClientConnected)
                 {   //Check if the client is connected correctly
                     btn_ClientConnect.Disable();
@@ -431,6 +449,42 @@ namespace Gurkenplayer
             catch(Exception ex)
             {
                 Log.Error("Reset click Exception. " + ex.ToString());
+            }
+        }
+
+        void btn_Close_eventClick(UIComponent component, UIMouseEventParameter eventParam)
+        {
+            base.isVisible = false;
+        }
+
+        void Instance_serverStoppedEvent(object sender, EventArgs e)
+        {
+            Log.Message("ServerStoppedEvent");
+            try
+            {
+                if (btn_ClientConnect.enabled)
+                    btn_ClientConnect.Enable();
+                if (btn_ServerStart.enabled)
+                    btn_ServerStart.Enable();
+            }
+            catch (Exception ex)
+            {
+                Log.Error("ServerStoppedEvent error: " + ex.ToString());
+            }
+        }
+        void Instance_clientDisconnectedEvent(object sender, EventArgs e)
+        {
+            Log.Message("ClientDisconnectedEvent");
+            try
+            {
+                if (btn_ClientConnect.enabled)
+                    btn_ClientConnect.Enable();
+                if (btn_ServerStart.enabled)
+                    btn_ServerStart.Enable();
+            }
+            catch (Exception ex)
+            {
+                Log.Error("ClientDisconnectedEvent error: " + ex.ToString());
             }
         }
     }
