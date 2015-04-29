@@ -14,6 +14,9 @@ namespace Gurkenplayer
     {
         private static MPRoleType mpRole = MPRoleType.None;
 
+        /// <summary>
+        /// Indicates the current multiplayer role of the user.
+        /// </summary>
         public static MPRoleType MPRole
         {
             get { return GurkenplayerMod.mpRole; }
@@ -54,12 +57,6 @@ namespace Gurkenplayer
             }
         }
 
-        private static bool isDebugging = false;
-        public static bool IsDebugging
-        {
-            get { return isDebugging; }
-            set { isDebugging = value; }
-        }
         //Necessary properties
         public string Description
         {

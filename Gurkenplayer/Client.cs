@@ -12,7 +12,7 @@ using ColossalFramework;
 
 namespace Gurkenplayer
 {
-    public class Client
+    public class Client : IDisposable
     {
         //Fields
         #region Fields
@@ -23,20 +23,16 @@ namespace Gurkenplayer
         string serverIP = "localhost";
         int serverPort = 4420;
         string serverPassword = "Password";
-        //private static bool isClientInitialized = false;
         static bool isClientConnected = false;
+        static bool stopMessageProcessingThread = false;
+        bool disposed = false;
         string username = "usr";
-        //static bool messageLoopRequestStop = false;
-
-        //public static bool MessageLoopRequestStop
-        //{
-        //    get { return messageLoopRequestStop; }
-        //    set { messageLoopRequestStop = value; }
-        //}
+        ParameterizedThreadStart pts;
         Thread messageProcessingThread;
         #endregion
 
         //Properties
+        #region props
         /// <summary>
         /// Returns the IP-Address of the server.
         /// </summary>
@@ -65,7 +61,7 @@ namespace Gurkenplayer
         }
 
         /// <summary>
-        /// Indicates if the client is connected to a server.
+        /// Indicates if the client is connected to a server. Is set to "true" inside the StatusChanged of ProcessMessage.
         /// </summary>
         public static bool IsClientConnected
         {
@@ -80,6 +76,7 @@ namespace Gurkenplayer
             }
             set { Client.isClientConnected = value; }
         }
+
         /// <summary>
         /// Returns true if the client is initialized (instance != null).
         /// </summary>
@@ -93,6 +90,7 @@ namespace Gurkenplayer
                 return false;
             }
         }
+
         /// <summary>
         /// Returns the username of the client.
         /// </summary>
@@ -124,9 +122,19 @@ namespace Gurkenplayer
             get { return client.ConnectionStatus; }
         }
 
-        //Singleton pattern
         /// <summary>
-        /// Singleton statement of Client.
+        /// Indicates if the message processing thread of the client should be stopped gracefully.
+        /// </summary>
+        public static bool StopMessageProcessingThread
+        {
+            get { return Client.stopMessageProcessingThread; }
+            set { Client.stopMessageProcessingThread = value; }
+        }
+        #endregion
+
+        //Singleton pattern stuff
+        /// <summary>
+        /// Returns the current instance of the client and creates a new one if it is null.
         /// </summary>
         public static Client Instance
         {
@@ -148,12 +156,14 @@ namespace Gurkenplayer
         /// </summary>
         private Client()
         {
-            GurkenplayerMod.MPRole = MPRoleType.Client;
             config = new NetPeerConfiguration(appIdentifier);
             config.MaximumHandshakeAttempts = 1;
             config.ResendHandshakeInterval = 1;
             config.AutoFlushSendQueue = false; //client.SendMessage(message, NetDeliveryMethod); is needed for sending
             client = new NetClient(config);
+            pts = new ParameterizedThreadStart(this.ProcessMessage);
+            messageProcessingThread = new Thread(pts);
+            GurkenplayerMod.MPRole = MPRoleType.Client;
         }
 
         /// <summary>
@@ -161,6 +171,7 @@ namespace Gurkenplayer
         /// </summary>
         ~Client()
         {
+            Dispose();
         }
 
         //Methods
@@ -173,13 +184,13 @@ namespace Gurkenplayer
         /// <param name="password">The server password which is used to connect. Default: none</param>
         public void ConnectToServer(string ip = "localhost", int port = 4230, string password = "")
         {
-            //Throw Exception when ip is not valid
-            if (ip != "localhost" && ip.Split('.').Length != 4)
-                throw new MPException("Exception in Client.ConnectToServer()", new Exception("Invalid address"));
-
             Log.Message("Client connecting to server. if(IsClientConnected) -> Disconnect...(). IsClientConnected: " + IsClientConnected + " Current MPRole: " + GurkenplayerMod.MPRole);
             if (IsClientConnected)
                 DisconnectFromServer();
+
+            //Throw Exception when ip is not valid
+            if (ip != "localhost" && ip.Split('.').Length != 4)
+                throw new MPException("Invalid server ip address. Check it please.");
 
             Log.Warning(String.Format("Client trying to connect to ip:{0} port:{1} password:{2} maxretry:{3} retryinterval:{4} MPRole:{5}", ip, port, password, client.Configuration.MaximumHandshakeAttempts, client.Configuration.ResendHandshakeInterval, GurkenplayerMod.MPRole));
 
@@ -198,9 +209,9 @@ namespace Gurkenplayer
             Log.Message("after client.Connect. Starting Thread now.");
 
             IsClientConnected = true;
+            StopMessageProcessingThread = false;
+
             //Separate thread in which the received messages are handled
-            ParameterizedThreadStart pts = new ParameterizedThreadStart(this.ProcessMessage);
-            messageProcessingThread = new Thread(pts);
             messageProcessingThread.Start(client);
             Log.Message("Client should be connected. Current MPRole: " + GurkenplayerMod.MPRole + " MessageProcessingThread alive? " + messageProcessingThread.IsAlive);
         }
@@ -210,47 +221,53 @@ namespace Gurkenplayer
         /// </summary>
         public void DisconnectFromServer()
         {
+            if (!IsClientConnected)
+                return; //If client is not  connected, return
+
             Log.Message("Disconnecting from the server. Current MPRole: " + GurkenplayerMod.MPRole);
 
+            /* TEST */
             //Checks if the messageprocessingThread is alive/running
             Log.Error("Is MessageProcessingThread alive? " + messageProcessingThread.IsAlive);
-            if (messageProcessingThread.IsAlive)
+            //if (messageProcessingThread.IsAlive)
+            //{
+            //    Log.Error("Trying to aboard thread. Is alive? " + Instance.messageProcessingThread.IsAlive);
+            //    try
+            //    {
+            //        //messageProcessingThread.Interrupt();
+            //        StopMessageProcessingThread = true; //Terminate gracefully
+            //    }
+            //    catch (Exception)
+            //    {
+            //        //Interrupt() always trows an exception. There is no need to catch
+            //    }
+            //    //Log.Error("Aborted thread. Is alive? " + Instance.messageProcessingThread.IsAlive);
+            //}
+            /* END TEST */
+
+            try
             {
-                Log.Error("Trying to aboard thread. Is alive? " + Instance.messageProcessingThread.IsAlive);
-                try
-                {
-                    messageProcessingThread.Interrupt();
-                }
-                catch (Exception)
-                {
-
-                }
-                Log.Error("Aborted thread. Is alive? " + Instance.messageProcessingThread.IsAlive);
+                client.Disconnect("Bye Bye Client.");
             }
-            
-            //If client is connected, disconnect it
-            if (IsClientConnected)
+            catch (Exception ex)
             {
-                try
-                {
-                    client.Disconnect("Bye Bye Client.");
-
-                    IsClientConnected = false;
-
-                    //Reconfiguration
-                    config = new NetPeerConfiguration(appIdentifier);
-                    config.MaximumHandshakeAttempts = 1;
-                    config.ResendHandshakeInterval = 1;
-                    config.AutoFlushSendQueue = false; //client.SendMessage(message, NetDeliveryMethod); is needed for sending
-                    client = new NetClient(config);
-                    Log.Error("Disconnected. Is thread still alive? " + Instance.messageProcessingThread.IsAlive);
-                }
-                catch (Exception ex)
-                {
-                    Log.Error("Client disconnecting error. ex:" + ex.ToString());
-                }
+                Log.Error("Exception while disconnecting client. ex: " + ex.ToString());
             }
-            Log.Message("Client should be disconnected. Current MPRole: " + GurkenplayerMod.MPRole + " MessageProcessingThread still alive? " + messageProcessingThread.IsAlive);
+            finally
+            {
+                //Reconfiguration
+                config = new NetPeerConfiguration(appIdentifier);
+                config.MaximumHandshakeAttempts = 1;
+                config.ResendHandshakeInterval = 1;
+                config.AutoFlushSendQueue = false; //client.SendMessage(message, NetDeliveryMethod); is needed for sending
+                client = new NetClient(config);
+
+                IsClientConnected = false;
+                if (messageProcessingThread.IsAlive)
+                    StopMessageProcessingThread = true;
+
+                Log.Error("Disconnected. Is thread still alive? " + Instance.messageProcessingThread.IsAlive);
+            }
         }
 
         /// <summary>
@@ -263,16 +280,21 @@ namespace Gurkenplayer
                 Log.Message("Disposing client. Current MPRole: " + GurkenplayerMod.MPRole);
                 Instance.DisconnectFromServer();
                 if (!IsClientConnected)
-                {
                     GurkenplayerMod.MPRole = MPRoleType.None;
-                    instance = null;
-                }
                 
                 Log.Message("Client disposed. Current MPRole: " + GurkenplayerMod.MPRole);
             }
             catch (Exception ex)
             {
                 throw new MPException("Exception in Client.Dispose()", ex);
+            }
+            finally
+            {
+                if (!disposed)
+                {
+                    GC.SuppressFinalize(this);
+                    disposed = true;
+                }
             }
         }
 
@@ -290,7 +312,8 @@ namespace Gurkenplayer
 
                 while (true)
                 {
-                    if (GurkenplayerMod.MPRole != MPRoleType.Client)
+                    //Stop the thread if the MPRoleType is not Client or the bool StopMessageProcessingThread is true (default: false).
+                    if (GurkenplayerMod.MPRole != MPRoleType.Client || StopMessageProcessingThread)
                         break;
 
                     while ((msg = client.ReadMessage()) != null)
@@ -343,12 +366,18 @@ namespace Gurkenplayer
                         }
                     }
                 }
+                StopMessageProcessingThread = false;
                 Log.Warning("Leaving Client Message Progressing Loop");
+            }
+            catch (NetException ex)
+            {
+                throw new MPException("NetException (Lidgren) in Client.ProcessMessage. Message: " + ex.Message, ex);
             }
             catch (Exception ex)
             {
-                throw new MPException("Exception in Client.ProcessMessage()", ex);
+                throw new MPException("Exception in Client.ProcessMessage(). Message: " + ex.Message, ex);
             }
+
         }
         
         /// <summary>

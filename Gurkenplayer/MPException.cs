@@ -6,6 +6,7 @@ using System.Text;
 
 namespace Gurkenplayer
 {
+    [Serializable]
     public class MPException : Exception
     {
         public MPException() { }

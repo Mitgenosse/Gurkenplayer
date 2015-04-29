@@ -13,6 +13,8 @@ namespace Gurkenplayer
     {
         //Fields
         #region Fields
+        private bool isConfigurationFinished = false;
+        //General area
         UILabel lbl_Gurkenplayer;
         UILabel lbl_Username;
         UITextField txt_Username;
@@ -34,10 +36,16 @@ namespace Gurkenplayer
         UIButton btn_ServerStart;
         #endregion
 
+        //Properties
+        public bool IsConfigurationFinished
+        {
+            get { return isConfigurationFinished; }
+            set { isConfigurationFinished = value; }
+        }
+
         //Methods
         public override void Start()
         {
-            Log.Message("Configuration panel start...");
             SimulationManager.instance.ForcedSimulationPaused = true;
 
             UIDragHandle dh = (UIDragHandle)this.AddUIComponent(typeof(UIDragHandle)); //Activates the dragging of the window
@@ -46,6 +54,7 @@ namespace Gurkenplayer
             {
                 //Configures this window
                 this.backgroundSprite = "GenericPanel";
+                this.name = "MPConfigurationPanel";
                 this.color = new Color32(51, 204, 51, 220);
                 this.width = 385;
                 this.height = 523;
@@ -68,13 +77,18 @@ namespace Gurkenplayer
             }
         }
 
+        public override void Update()
+        {
+            SimulationManager.instance.ForcedSimulationPaused = (IsConfigurationFinished) ? false : true;
+        }
+
         /// <summary>
         /// OnDisable event of UIPanel. Triggers when the object is disabled.
         /// </summary>
         public override void OnDisable()
         {
-            SimulationManager.instance.ForcedSimulationPaused = false;
             base.OnDisable();
+            IsConfigurationFinished = true;
         }
 
         /// <summary>
@@ -352,7 +366,7 @@ namespace Gurkenplayer
                 //Try to start the server on click
                 Server.Instance.StartServer(port: Convert.ToInt32(txt_ServerPort.text), password: txt_Password.text, maximumPlayerAmount: Convert.ToInt32(txt_ServerPlayers.text));
 
-                if (!Server.StopServer)
+                if (!Server.StopMessageProcessingThread)
                 {   //Check if the server is started correctly.
                     Log.Message("Server lobby started! Current MPRole is " + GurkenplayerMod.MPRole);
                     btn_ClientConnect.Disable();
@@ -394,13 +408,9 @@ namespace Gurkenplayer
                     Log.Message("Could not connect to " + txt_ClientIP.text + " Current MPRole: " + GurkenplayerMod.MPRole);
                 }
             }
-            catch (ArgumentException ex)
-            {
-                Log.Error("ConfigurationPanel client connect argument exception. Message: " + ex.Message);
-            }
             catch (Exception ex)
             {
-                Log.Error("Could not connect to server. Exception: " + ex.Message);
+                Log.Error("Could not connect to server. Exception: " + ex.ToString());
             }
         }
 
@@ -420,7 +430,7 @@ namespace Gurkenplayer
             }
             catch(Exception ex)
             {
-                Log.Error("Reset click Exception. " + ex.Message);
+                Log.Error("Reset click Exception. " + ex.ToString());
             }
         }
     }

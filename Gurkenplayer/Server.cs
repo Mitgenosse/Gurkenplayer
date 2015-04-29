@@ -9,7 +9,7 @@ using ICities;
 
 namespace Gurkenplayer
 {
-    public class Server
+    public class Server : IDisposable
     {
         //Fields
         #region Fields (and objects <3)
@@ -20,16 +20,18 @@ namespace Gurkenplayer
         string serverPassword = "Password";
         int serverPort = 4230;
         int serverMaximumPlayerAmount = 1; //1 extra player (coop)
-        static bool stopServer = false;
+        static bool stopMessageProcessingThread = false;
         static bool isServerStarted = false;
         string username = "Host";
+        bool disposed = false;
 
         //Message handle thread
         ParameterizedThreadStart pts; //Initializes in the constructor
-        Thread messageHandleThread;
+        Thread messageProcessingThread;
         #endregion
 
         //Properties
+        #region Props
         /// <summary>
         /// Returns the used server password.
         /// </summary>
@@ -60,10 +62,10 @@ namespace Gurkenplayer
         /// <summary>
         /// Returns true if the server is running.
         /// </summary>
-        public static bool StopServer
+        public static bool StopMessageProcessingThread
         {
-            get { return Server.stopServer; }
-            set { Server.stopServer = value; }
+            get { return Server.stopMessageProcessingThread; }
+            set { Server.stopMessageProcessingThread = value; }
         }
 
         /// <summary>
@@ -78,6 +80,15 @@ namespace Gurkenplayer
                 
                 return false;
             }
+        }
+
+        /// <summary>
+        /// Indicates wether the server is started or not.
+        /// </summary>
+        public static bool IsServerStarted
+        {
+            get { return Server.isServerStarted; }
+            set { Server.isServerStarted = value; }
         }
 
         /// <summary>
@@ -97,17 +108,18 @@ namespace Gurkenplayer
             get
             {
                 if (server != null)
-                    if (server.ConnectionsCount < 0)
+                    if (server.ConnectionsCount > 0)
                         return true;
 
                 return false;
             }
         }
+        #endregion
 
         //Singleton pattern
         /// <summary>
         /// Singleton instance. There should be only one instance of the Server or Client class.
-        /// With the help of the singleton parameter, we can access this class from everywhere.
+        /// Returns the current instance of the server and creates a new one if it is null.
         /// </summary>
         public static Server Instance
         {
@@ -129,14 +141,14 @@ namespace Gurkenplayer
         /// </summary>
         private Server()
         {
-            GurkenplayerMod.MPRole = MPRoleType.Server;
-            pts = new ParameterizedThreadStart(this.ProcessMessage);
-            messageHandleThread = new Thread(pts);
             config = new NetPeerConfiguration(appIdentifier);
             config.Port = ServerPort;
             config.MaximumConnections = ServerMaximumPlayerAmount;
             config.EnableMessageType(NetIncomingMessageType.ConnectionApproval);
             config.AutoFlushSendQueue = false;
+            GurkenplayerMod.MPRole = MPRoleType.Server;
+            pts = new ParameterizedThreadStart(this.ProcessMessage);
+            messageProcessingThread = new Thread(pts);
         }
 
         /// <summary>
@@ -144,6 +156,7 @@ namespace Gurkenplayer
         /// </summary>
         ~Server()
         {
+            Dispose();
         }
 
         //Methods
@@ -154,11 +167,17 @@ namespace Gurkenplayer
         /// <param name="port">Port of the server. Default: 4230</param>
         /// <param name="password">Password of the server. Default: none</param>
         /// <param name="maximumPlayerAmount">Amount of players. Default: 2</param>
-        public void StartServer(int port = 4230, string password = "", int maximumPlayerAmount = 2)
+        public void StartServer(int port = 4230, string password = "", int maximumPlayerAmount = 1)
         {
-            Log.Message("Starting the server. IsServerStarted? j -> Instance.StopServer(). Status: " + StopServer);
-            if (StopServer)
+            Log.Message("Starting the server. IsServerStarted? j -> Instance.Stop(). Status: " + StopMessageProcessingThread);
+            if (IsServerStarted)
                 Instance.Stop();
+
+            if (port < 1000 || port > 65535)
+                throw new MPException("I am not going to bind a port under 1000.");
+
+            if (maximumPlayerAmount < 1)
+                throw new MPException("You cannot play alone!");
 
             //Field configuration
             ServerPort = port;
@@ -172,11 +191,11 @@ namespace Gurkenplayer
             //Initializes the NetServer object with the config and start it
             server = new NetServer(config);
             server.Start();
-            StopServer = false;
-            isServerStarted = true;
+            StopMessageProcessingThread = false;
 
             //Separate thread in which the received messages are handled
-            messageHandleThread.Start(server);
+            messageProcessingThread.Start(server);
+            IsServerStarted = true;
             Log.Message("Server started successfuly.");
         }
 
@@ -185,28 +204,32 @@ namespace Gurkenplayer
         /// </summary>
         public void Stop()
         {
+            if (!IsServerStarted) //If server is not started, return
+                return;
+
             try
             {
-                if (isServerStarted)
-                {
-                    Log.Message("Shutting down the server");
-                    Log.Error("ConnectionsCount BeforeShutdown:::" + server.ConnectionsCount.ToString());
-
-                    server.Shutdown("Bye bye Server!");
-                    StopServer = true;
-                    Log.Message("Server shut down");
-
-                    config = new NetPeerConfiguration(appIdentifier);
-                    config.Port = ServerPort;
-                    config.MaximumConnections = ServerMaximumPlayerAmount;
-                    config.EnableMessageType(NetIncomingMessageType.ConnectionApproval);
-                    config.AutoFlushSendQueue = false;
-                    Log.Error("ConnectionsCount AfterShutdown:::" + server.ConnectionsCount.ToString());
-                }
+                Log.Message("Shutting down the server");
+                server.Shutdown("Bye bye Server!");
+            }
+            catch (NetException ex)
+            {
+                throw new MPException("NetException (Lidgren) in Server.ProcessMessage. Message: " + ex.Message, ex);
             }
             catch (Exception ex)
             {
                 throw new MPException("Exception in Server.Stop()", ex);
+            }
+            finally
+            {
+                config = new NetPeerConfiguration(appIdentifier);
+                config.Port = ServerPort;
+                config.MaximumConnections = ServerMaximumPlayerAmount;
+                config.EnableMessageType(NetIncomingMessageType.ConnectionApproval);
+                config.AutoFlushSendQueue = false;
+                StopMessageProcessingThread = true;
+                IsServerStarted = false;
+                Log.Message("Server shut down");
             }
         }
 
@@ -221,10 +244,12 @@ namespace Gurkenplayer
 
                 Stop();
 
-                if (!isServerStarted)
+                GurkenplayerMod.MPRole = MPRoleType.None;
+
+                if (!disposed)
                 {
-                    GurkenplayerMod.MPRole = MPRoleType.None;
-                    instance = null;
+                    GC.SuppressFinalize(this);
+                    disposed = true;
                 }
 
                 Log.Message("Server disposed. Current MPRole: " + GurkenplayerMod.MPRole);
@@ -248,7 +273,7 @@ namespace Gurkenplayer
                 Log.Message("Server thread started. ProcessMessage(). Current MPRole: " + GurkenplayerMod.MPRole);
 
 
-                while (!StopServer)
+                while (!StopMessageProcessingThread)
                 { //As long as the server is started
                     while ((msg = server.ReadMessage()) != null)
                     {
@@ -325,13 +350,16 @@ namespace Gurkenplayer
                         }
                     }
                 }
-                isServerStarted = false;
-                StopServer = false;
                 Log.Warning("Leaving Server processmessage");
             }
             catch (Exception ex)
             {
                 throw new MPException("Exception in Server.ProcessMessage()", ex);
+            }
+            finally
+            {
+                IsServerStarted = false;
+                StopMessageProcessingThread = false;
             }
         }
         

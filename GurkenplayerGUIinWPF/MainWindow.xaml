@@ -21,9 +21,10 @@
         <!-- Server -->
         <Label Content="Server" HorizontalAlignment="Left" Margin="145,290,0,0" VerticalAlignment="Top" FontSize="18"/>
         <Label Content="Players:" HorizontalAlignment="Left" Margin="60,325,0,0" VerticalAlignment="Top"/>
-        <Label Content="2" HorizontalAlignment="Left" Margin="110,325,0,0" VerticalAlignment="Top"/>
+        <TextBox Text="2" HorizontalAlignment="Left" Margin="110,325,0,0" IsReadOnly="True" VerticalAlignment="Top" Width="210"/>
         <Label Content="Port:" HorizontalAlignment="Left" Margin="70,355,0,0" VerticalAlignment="Top"/>
         <TextBox HorizontalAlignment="Left" Height="26" Margin="110,355,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="210"/>
         <Button Content="Start lobby" HorizontalAlignment="Left" Margin="40,385,0,0" VerticalAlignment="Top" Width="280"/>
+        <Button Content="Close" HorizontalAlignment="Left" Margin="0,471,0,0" VerticalAlignment="Top" Width="367"/>
     </Grid>
 </Window>
