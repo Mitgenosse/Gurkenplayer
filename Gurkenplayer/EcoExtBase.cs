@@ -59,16 +59,16 @@ namespace Gurkenplayer
             _internalMoneyAmount = internalMoneyAmount;
             if (GurkenplayerMod.MPRole == MPRoleType.Server)
             {
-                Server.Instance.SendEconomyInformationUpdateToAll();
+                MPServer.Instance.SendEconomyInformationUpdateToAll();
                 return _internalMoneyAmount;
             }
             if (GurkenplayerMod.MPRole == MPRoleType.Client)
             {
-                Client.Instance.SendEconomyInformationUpdateToServer();
+                MPClient.Instance.SendEconomyInformationUpdateToServer();
                 return _internalMoneyAmount;
                 
             }
-            return internalMoneyAmount; //If user is not server or client, he should not be connected. Return original value
+            return internalMoneyAmount; //If user is not server or netClient, he should not be connected. Return original value
         }
 
         /// <summary>
@@ -78,22 +78,22 @@ namespace Gurkenplayer
         {
             if (GurkenplayerMod.MPRole == MPRoleType.Server)
             {   //If user is a server and there are clients connected, enter the while loop.
-                while (Server.Instance.CanSendMessage)
+                while (MPServer.Instance.CanSendMessage)
                 {
                     if (!IsEcoUpdateThreadStarted) //If it is not running anymore. Go home.
                         break;
                     Thread.Sleep(444);
-                    Server.Instance.SendEconomyInformationUpdateToAll();
+                    MPServer.Instance.SendEconomyInformationUpdateToAll();
                 }
             }
             else if (GurkenplayerMod.MPRole == MPRoleType.Client)
-            {   //If user is a client and is connected to a server, enter the wile loop.
-                while (Server.Instance.CanSendMessage)
+            {   //If user is a netClient and is connected to a server, enter the wile loop.
+                while (MPServer.Instance.CanSendMessage)
                 {
                     if (!IsEcoUpdateThreadStarted)
                         break;
                     Thread.Sleep(444);
-                    Client.Instance.SendEconomyInformationUpdateToServer();
+                    MPClient.Instance.SendEconomyInformationUpdateToServer();
                 }
             }
             isEcoUpdateThreadStarted = false;

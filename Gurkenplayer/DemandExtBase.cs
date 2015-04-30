@@ -41,12 +41,12 @@ namespace Gurkenplayer
         { 
             if (GurkenplayerMod.MPRole == MPRoleType.Server) //Update all
             {
-                Server.Instance.SendDemandInformationUpdateToAll();
+                MPServer.Instance.SendDemandInformationUpdateToAll();
                 return _commercialDemand;
             }
             else if (GurkenplayerMod.MPRole == MPRoleType.Client)
             {
-                Client.Instance.SendDemandInformationUpdateToServer();
+                MPClient.Instance.SendDemandInformationUpdateToServer();
                 return _commercialDemand;
             }
             return originalDemand;

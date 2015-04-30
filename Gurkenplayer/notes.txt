@@ -22,7 +22,7 @@ International mode (competative/multiplayer leaderboard)
 ->Possible player interactions could be sending money, etc.
 ->Not much to sync
 
-ToDo for both:
+ToDo for every mode:
 -Create a configuration window at the start of the game
 -How to start the multiplayer session? Only new game?
 

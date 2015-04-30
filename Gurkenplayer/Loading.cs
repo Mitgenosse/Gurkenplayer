@@ -55,7 +55,8 @@ namespace Gurkenplayer
         /// </summary>
         public override void OnLevelUnloading()
         {
-            GurkenplayerMod.MPRole = MPRoleType.Resetting;
+            if (MPManager.Instance != null)
+                MPManager.Instance.SetMPRole(MPRoleType.Resetting);
 
             if (uiComponent != null)
                 UnityEngine.Object.Destroy(uiComponent);
@@ -67,7 +68,8 @@ namespace Gurkenplayer
         /// </summary>
         public override void OnReleased()
         {
-            GurkenplayerMod.MPRole = MPRoleType.Resetting;
+            if (MPManager.Instance != null)
+                MPManager.Instance.SetMPRole(MPRoleType.Resetting);
 
             if (uiComponent != null)
                 UnityEngine.Object.Destroy(uiComponent);

@@ -9,37 +9,56 @@ using ICities;
 
 namespace Gurkenplayer
 {
-    public delegate void ServerEventHandler(Object sender, EventArgs e);
-    public class Server : IDisposable
+    public delegate void ServerEventHandler(object sender, EventArgs e);
+    public class MPServer : IDisposable
     {
+        //Event stuff
+        #region Events and Eventmethods
         public event ServerEventHandler serverStartedEvent;
         public event ServerEventHandler serverStoppedEvent;
+        public event ServerEventHandler serverLeftProcessingMessageThread;
 
+        /// <summary>
+        /// Fires when the server is 100% started.
+        /// </summary>
+        /// <param name="e"></param>
         public virtual void OnServerStarted(EventArgs e)
         {
             if (serverStartedEvent != null)
                 serverStartedEvent(this, e);
         }
+        /// <summary>
+        /// Fires when the server is 100% stopped.
+        /// </summary>
+        /// <param name="e"></param>
         public virtual void OnServerStopped(EventArgs e)
         {
             if (serverStoppedEvent != null)
                 serverStoppedEvent(this, e);
         }
+        /// <summary>
+        /// Fires when the ProcessMessage thread is about to end.
+        /// </summary>
+        /// <param name="e"></param>
+        public virtual void OnServerLeftProcessingMessageThread(EventArgs e)
+        {
+            if (serverLeftProcessingMessageThread != null)
+                serverLeftProcessingMessageThread(this, e);
+        }
+        #endregion
 
         //Fields
         #region Fields (and objects <3)
-        static Server instance; //Singleton instance object
         NetPeerConfiguration config; //Is used to create the server
         NetServer server;
         string appIdentifier = "Gurkenplayer";
         string serverPassword = "Password";
         int serverPort = 4230;
         int serverMaximumPlayerAmount = 1; //1 extra player (coop)
-        static bool stopMessageProcessingThread = false;
-        static bool isServerStarted = false;
+        bool isServerStarted = false;
         string username = "Host";
         bool disposed = false;
-
+        MPSharedCondition stopProcessMessageThread;
         //Message handle thread
         ParameterizedThreadStart pts; //Initializes in the constructor
         Thread messageProcessingThread;
@@ -77,33 +96,19 @@ namespace Gurkenplayer
         /// <summary>
         /// Returns true if the server is running.
         /// </summary>
-        public static bool StopMessageProcessingThread
+        public MPSharedCondition StopMessageProcessingThread
         {
-            get { return Server.stopMessageProcessingThread; }
-            set { Server.stopMessageProcessingThread = value; }
-        }
-
-        /// <summary>
-        /// Returns true if the server is initialized (instance != null).
-        /// </summary>
-        public static bool IsServerInitialized
-        {
-            get
-            {
-                if (Instance != null)
-                    return true;
-                
-                return false;
-            }
+            get { return stopProcessMessageThread; }
+            set { stopProcessMessageThread = value; }
         }
 
         /// <summary>
         /// Indicates wether the server is started or not.
         /// </summary>
-        public static bool IsServerStarted
+        public bool IsServerStarted
         {
-            get { return Server.isServerStarted; }
-            set { Server.isServerStarted = value; }
+            get { return isServerStarted; }
+            set { isServerStarted = value; }
         }
 
         /// <summary>
@@ -116,7 +121,7 @@ namespace Gurkenplayer
         }
 
         /// <summary>
-        /// Returns true if the server is initialized and a client is connected to it.
+        /// Returns true if the server is initialized and a netClient is connected to it.
         /// </summary>
         public bool CanSendMessage
         {
@@ -131,37 +136,15 @@ namespace Gurkenplayer
         }
         #endregion
 
-        //Singleton pattern
-        /// <summary>
-        /// Singleton instance. There should be only one instance of the Server or Client class.
-        /// Returns the current instance of the server and creates a new one if it is null.
-        /// </summary>
-        public static Server Instance
-        {
-            get
-            {
-                //Returns the instance if it is not null. If it is, return new instance
-                return instance ?? (instance = new Server()); //Test
-
-                //if (instance == null)
-                //    instance = new Server();
-
-                //return instance;
-            }
-        }
 
         //Constructor
         /// <summary>
         /// Private Server constructor used in the singleton pattern. It initialized the config.
         /// </summary>
-        private Server()
+        public MPServer(MPSharedCondition condition)
         {
-            config = new NetPeerConfiguration(appIdentifier);
-            config.Port = ServerPort;
-            config.MaximumConnections = ServerMaximumPlayerAmount;
-            config.EnableMessageType(NetIncomingMessageType.ConnectionApproval);
-            config.AutoFlushSendQueue = false;
-            GurkenplayerMod.MPRole = MPRoleType.Server;
+            stopProcessMessageThread = condition ?? new MPSharedCondition(false);
+            ResetConfig();
             pts = new ParameterizedThreadStart(this.ProcessMessage);
             messageProcessingThread = new Thread(pts);
         }
@@ -169,7 +152,7 @@ namespace Gurkenplayer
         /// <summary>
         /// Destructor logic.
         /// </summary>
-        ~Server()
+        ~MPServer()
         {
             Dispose();
         }
@@ -201,8 +184,7 @@ namespace Gurkenplayer
             ServerMaximumPlayerAmount = maximumPlayerAmount;
 
             //NetPeerConfiguration configuration
-            config.Port = ServerPort;
-            config.MaximumConnections = ServerMaximumPlayerAmount;
+            ResetConfig();
 
             //Initializes the NetServer object with the config and start it
             server = new NetServer(config);
@@ -239,16 +221,24 @@ namespace Gurkenplayer
             }
             finally
             {
-                config = new NetPeerConfiguration(appIdentifier);
-                config.Port = ServerPort;
-                config.MaximumConnections = ServerMaximumPlayerAmount;
-                config.EnableMessageType(NetIncomingMessageType.ConnectionApproval);
-                config.AutoFlushSendQueue = false;
-                StopMessageProcessingThread = true;
+                ResetConfig();
+                StopMessageProcessingThread.Condition = true;
                 IsServerStarted = false;
                 OnServerStopped(new EventArgs());
                 Log.Message("Server shut down");
             }
+        }
+
+        /// <summary>
+        /// Method to create a new config.
+        /// </summary>
+        private void ResetConfig()
+        {
+            config = new NetPeerConfiguration(appIdentifier);
+            config.Port = ServerPort;
+            config.MaximumConnections = ServerMaximumPlayerAmount;
+            config.EnableMessageType(NetIncomingMessageType.ConnectionApproval);
+            config.AutoFlushSendQueue = false;
         }
 
         /// <summary>
@@ -258,11 +248,9 @@ namespace Gurkenplayer
         {
             try
             {
-                Log.Message("Disposing server. Current MPRole: " + GurkenplayerMod.MPRole);
+                Log.Message("Disposing server. Current MPRole: " + MPManager.Instance.MPRole);
 
                 Stop();
-
-                GurkenplayerMod.MPRole = MPRoleType.None;
                 
                 if (!disposed)
                 {
@@ -270,7 +258,7 @@ namespace Gurkenplayer
                     disposed = true;
                 }
 
-                Log.Message("Server disposed. Current MPRole: " + GurkenplayerMod.MPRole);
+                Log.Message("Server disposed. Current MPRole: " + MPManager.Instance.MPRole);
             }
             catch (Exception ex)
             {
@@ -288,10 +276,11 @@ namespace Gurkenplayer
             {
                 server = (NetServer)obj;
                 NetIncomingMessage msg;
-                Log.Message("Server thread started. ProcessMessage(). Current MPRole: " + GurkenplayerMod.MPRole);
+                Log.Message("Server thread started. ProcessMessage(). Current MPRole: " + MPManager.Instance.MPRole);
 
-                StopMessageProcessingThread = false;
-                while (!StopMessageProcessingThread && IsServerStarted)
+                StopMessageProcessingThread.Condition = false;
+                MPManager.Instance.IsProcessMessageThreadRunning = true;
+                while (!StopMessageProcessingThread.Condition)
                 { //As long as the server is started
                     while ((msg = server.ReadMessage()) != null)
                     {
@@ -328,7 +317,7 @@ namespace Gurkenplayer
                             #region NetIncomingMessageType.Data
                             case NetIncomingMessageType.Data:
                                 Log.Message("Server Incoming Message Data.");
-                                byte type = msg.ReadByte();
+                                int type = msg.ReadInt32();
                                 Log.Message("Type: " + type + "; MPMessageType: " + (MPMessageType)type);
                                 ProgressData((MPMessageType)type, msg); //Test
                                 break;
@@ -365,21 +354,26 @@ namespace Gurkenplayer
                             #endregion
 
                             default:
-                                Log.Warning("Server ProcessMessage: Unhandled type/message: " + msg.MessageType);
+                                Log.Warning(String.Format("Server ProcessMessage: Unhandled Type: {0}", msg.MessageType));
                                 break;
                         }
                     }
                 }
-                Log.Warning("Leaving Server processmessage");
+            }
+            catch (NetException ex)
+            {
+                throw new MPException("NetException (Lidgren) in Server.ProcessMessage. Message: " + ex.ToString(), ex);
             }
             catch (Exception ex)
             {
-                throw new MPException("Exception in Server.ProcessMessage()", ex);
+                throw new MPException("Exception in Server.ProcessMessage(). Message: " + ex.ToString(), ex);
             }
             finally
             {
+                Log.Warning("Leaving Server processmessage");
                 IsServerStarted = false;
-                StopMessageProcessingThread = false;
+                StopMessageProcessingThread.Condition = false;
+                OnServerLeftProcessingMessageThread(new EventArgs());
             }
         }
         
@@ -388,34 +382,6 @@ namespace Gurkenplayer
         /// </summary>
         /// <param name="type">Type of the message. Indicates what the message's contents are.</param>
         /// <param name="msg">Received message.</param>
-        private void ProgressData(int type, NetIncomingMessage msg)
-        {
-            switch (type)
-            {
-                case 0x2000: //Receiving money
-                    Log.Message("Server received 0x2000");
-                    EcoExtBase._CurrentMoneyAmount = msg.ReadInt64();
-                    EcoExtBase._InternalMoneyAmount = msg.ReadInt64();
-                    break;
-                case 0x3000: //Receiving demand
-                    Log.Message("Server received 0x3000");
-                    DemandExtBase._CommercialDemand = msg.ReadInt32();
-                    DemandExtBase._ResidentalDemand = msg.ReadInt32();
-                    DemandExtBase._WorkplaceDemand = msg.ReadInt32();
-                    break;
-                case 0x4000:
-                    Log.Message("Server received 0x4000");
-                    AreaExtBase._XCoordinate = msg.ReadInt32();
-                    AreaExtBase._ZCoordinate = msg.ReadInt32();
-                    //INFO: The unlock process is activated once every 4 seconds simutaniously with the
-                    //EcoExtBase.OnUpdateMoneyAmount(long internalMoneyAmount).
-                    //Maybe I find a direct way to unlock a tile within AreaExtBase
-                    break;
-                default:
-                    Log.Warning("Server_ProgressData: Unhandled type/message: " + msg.MessageType);
-                    break;
-            }
-        }
         private void ProgressData(MPMessageType msgType, NetIncomingMessage msg)
         {
             switch (msgType)
@@ -440,7 +406,7 @@ namespace Gurkenplayer
                     //Maybe I find a direct way to unlock a tile within AreaExtBase
                     break;
                 default:
-                    Log.Warning("Server_ProgressData: Unhandled type/message: " + msgType);
+                    Log.Warning(String.Format("Server ProgressData: Unhandled ID/type: {0}/{1} ", (int)msgType, msgType));
                     break;
             }
         }
@@ -452,7 +418,8 @@ namespace Gurkenplayer
         {
             if (CanSendMessage)
             {
-                NetOutgoingMessage msg = server.CreateMessage((byte)MPMessageType.MoneyUpdate);
+                NetOutgoingMessage msg = server.CreateMessage();
+                msg.Write((int)MPMessageType.MoneyUpdate);
                 msg.Write(EconomyManager.instance.LastCashAmount);//EcoExtBase._CurrentMoneyAmount
                 msg.Write(EconomyManager.instance.InternalCashAmount);//EcoExtBase._InternalMoneyAmount
                 server.SendToAll(msg, NetDeliveryMethod.ReliableOrdered);
@@ -467,7 +434,8 @@ namespace Gurkenplayer
         {
             if (CanSendMessage)
             {
-                NetOutgoingMessage msg = server.CreateMessage((byte)MPMessageType.DemandUpdate);
+                NetOutgoingMessage msg = server.CreateMessage();
+                msg.Write((int)MPMessageType.DemandUpdate);
                 msg.Write(DemandExtBase._CommercialDemand);
                 msg.Write(DemandExtBase._ResidentalDemand);
                 msg.Write(DemandExtBase._WorkplaceDemand);
@@ -485,7 +453,8 @@ namespace Gurkenplayer
         {
             if (CanSendMessage)
             {
-                NetOutgoingMessage msg = server.CreateMessage((byte)MPMessageType.TileUpdate);
+                NetOutgoingMessage msg = server.CreateMessage();
+                msg.Write((int)MPMessageType.TileUpdate);
                 msg.Write(x);
                 msg.Write(z);
                 server.SendToAll(msg, NetDeliveryMethod.ReliableOrdered);

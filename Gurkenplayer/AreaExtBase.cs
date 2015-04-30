@@ -52,13 +52,13 @@ namespace Gurkenplayer
             if (GurkenplayerMod.MPRole == MPRoleType.Server)
             {
                 managers.areas.UnlockArea(x, z, true);
-                Server.Instance.SendAreaInformationUpdateToAll(x, z);
+                MPServer.Instance.SendAreaInformationUpdateToAll(x, z);
                 //Send unlocked area to clients
             }
             else if (GurkenplayerMod.MPRole == MPRoleType.Client)
             {
                 managers.areas.UnlockArea(x, z, true);
-                Client.Instance.SendAreaInformationUpdateToServer(x, z);
+                MPClient.Instance.SendAreaInformationUpdateToServer(x, z);
                 //Send unlocked area to server
             }
             managers.areas.UnlockArea(x, z, true);

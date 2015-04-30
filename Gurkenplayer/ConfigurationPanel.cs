@@ -14,6 +14,7 @@ namespace Gurkenplayer
         //Fields
         #region Fields
         private bool isConfigurationFinished = false;
+        MPManager mpManager = MPManager.Instance;
         //General area
         UILabel lbl_Gurkenplayer;
         UILabel lbl_Username;
@@ -75,6 +76,9 @@ namespace Gurkenplayer
             }
         }
 
+        /// <summary>
+        /// Update is calles every frame while the configuration panel is enabled.
+        /// </summary>
         public override void Update()
         {
             if (Input.GetKey(KeyCode.LeftControl))
@@ -87,18 +91,17 @@ namespace Gurkenplayer
 
                 if (Input.GetKeyDown(KeyCode.S))
                 {
-                    if(Server.IsServerInitialized && Server.IsServerStarted)
-                        Server.Instance.Stop();
+                    mpManager.ServerStop();
                 }
 
                 if (Input.GetKeyDown(KeyCode.B))
                 {
-                    if (GurkenplayerMod.MPRole == MPRoleType.Client)
-                        Log.Message(String.Format(">B>Status: Current MPRoleType: {0}; IsClientConnected: {1}; Client StopMessageProcessThread : {2};", GurkenplayerMod.MPRole, Client.IsClientConnected, Client.StopMessageProcessingThread));
-                    else if (GurkenplayerMod.MPRole == MPRoleType.Server)
-                        Log.Message(String.Format(">B>Status: Current MPRoleType: {0}; IsServerStarted: {1}; Server StopMessageProcessThread : {2};", GurkenplayerMod.MPRole, Server.IsServerStarted, Server.StopMessageProcessingThread));
-                    else if (GurkenplayerMod.MPRole == MPRoleType.Resetting)
-                        Log.Message("GurkenplayerMod.MPRole is Resetting");
+                    if (mpManager.MPRole == MPRoleType.Client)
+                        Log.Message(String.Format(">B>Status: Current MPRoleType: {0}; IsClientConnected: {1}; Client StopMessageProcessThread : {2};", mpManager.MPRole, mpManager.MPClient.IsClientConnected, mpManager.MPClient.StopMessageProcessingThread.Condition));
+                    else if (mpManager.MPRole == MPRoleType.Server)
+                        Log.Message(String.Format(">B>Status: Current MPRoleType: {0}; IsServerStarted: {1}; Server StopMessageProcessThread : {2};", mpManager.MPRole, mpManager.MPServer.IsServerStarted, mpManager.MPServer.StopMessageProcessingThread.Condition));
+                    else if (mpManager.MPRole == MPRoleType.Resetting)
+                        Log.Message("mpManager.MPRole is Resetting");
                     else
                         Log.Message("No information provided");
                 }
@@ -378,29 +381,34 @@ namespace Gurkenplayer
         /// <param name="eventParam"></param>
         void btn_ServerStart_eventClick(UIComponent component, UIMouseEventParameter eventParam)
         {
-            Server.Instance.serverStoppedEvent += Instance_serverStoppedEvent;
-            try
+            mpManager.ServerInitialize();
+            if (mpManager.IsMPServerInitialized)
             {
-                Log.Message(String.Format("Trying to start a lobby on port {0} with the username {1} and password {2}", txt_ClientPort.text, txt_Username.text, txt_Password.text));
-                //Try to start the server on click
-                Server.Instance.StartServer(port: Convert.ToInt32(txt_ServerPort.text), password: txt_Password.text, maximumPlayerAmount: Convert.ToInt32(txt_ServerPlayers.text));
-
-                if (Server.IsServerStarted)
-                {   //Check if the server is started correctly.
-                    Log.Message("Server lobby started! Current MPRole is " + GurkenplayerMod.MPRole);
-                    btn_ClientConnect.Disable();
-                    btn_ServerStart.Disable();
-                }
-                else
+                mpManager.MPServer.serverStoppedEvent += MPServer_serverStoppedEvent;
+                try
                 {
-                    Log.Message("Server lobby could not start.");
+                    Log.Message(String.Format("Trying to start a lobby on port {0} with the username {1} and password {2}", txt_ClientPort.text, txt_Username.text, txt_Password.text));
+                    //Try to start the server on click
+                    mpManager.ServerStart(port: Convert.ToInt32(txt_ServerPort.text), password: txt_Password.text, maximumPlayerAmount: Convert.ToInt32(txt_ServerPlayers.text));
+
+                    if (mpManager.MPServer.IsServerStarted)
+                    {   //Check if the server is started correctly.
+                        Log.Message("Server lobby started! Current MPRole is " + mpManager.MPRole);
+                        btn_ClientConnect.Disable();
+                        btn_ServerStart.Disable();
+                    }
+                    else
+                    {
+                        Log.Message("Server lobby could not start.");
+                    }
                 }
-            }
-            catch (Exception ex)
-            {
-                Log.Error("Could not start the lobby. Exception: " + ex.ToString());
+                catch (Exception ex)
+                {
+                    Log.Error("Could not start the lobby. Exception: " + ex.ToString());
+                }
             }
         }
+
 
         /// <summary>
         /// Connects to the server eventClick event.
@@ -409,26 +417,29 @@ namespace Gurkenplayer
         /// <param name="eventParam">Mouseinformaion.</param>
         void btn_ClientConnect_eventClick(UIComponent component, UIMouseEventParameter eventParam)
         {
-            Client.Instance.clientDisconnectedEvent += Instance_clientDisconnectedEvent;
-            try
+            mpManager.ClientInitialize();
+            if (mpManager.IsMPClientInitialized)
             {
-                Log.Message(String.Format("Trying to connect to {0}:{1} with the username _{2}_ and password _{3}_", txt_ClientIP.text, txt_ClientPort.text, txt_Username.text, txt_Password.text));
-                //Tries to connect to the server
-                Client.Instance.ConnectToServer(txt_ClientIP.text, Convert.ToInt32(txt_ClientPort.text), txt_Password.text);
-
-                if (Client.IsClientConnected)
-                {   //Check if the client is connected correctly
-                    btn_ClientConnect.Disable();
-                    btn_ServerStart.Disable();
-                }
-                else
+                mpManager.MPClient.clientDisconnectedEvent += MPClient_clientDisconnectedEvent;
+                try
                 {
-                    Log.Message("Could not connect to " + txt_ClientIP.text + " Current MPRole: " + GurkenplayerMod.MPRole);
+                    Log.Message(String.Format("Trying to connect to {0}:{1} with the username _{2}_ and password _{3}_", txt_ClientIP.text, txt_ClientPort.text, txt_Username.text, txt_Password.text));
+                    //Tries to connect to the server
+                    mpManager.ClientConnect(txt_ClientIP.text, Convert.ToInt32(txt_ClientPort.text), txt_Password.text);
+                    if (mpManager.MPClient.IsClientConnected)
+                    {   //Check if the netClient is connected correctly
+                        btn_ClientConnect.Disable();
+                        btn_ServerStart.Disable();
+                    }
+                    else
+                    {
+                        Log.Message("Could not connect to " + txt_ClientIP.text + " Current MPRole: " + mpManager.MPRole);
+                    }
                 }
-            }
-            catch (Exception ex)
-            {
-                Log.Error("Could not connect to server. Exception: " + ex.ToString());
+                catch (Exception ex)
+                {
+                    Log.Error("Could not connect to server. Exception: " + ex.ToString());
+                }
             }
         }
 
@@ -441,10 +452,10 @@ namespace Gurkenplayer
         {
             try
             {
-                GurkenplayerMod.MPRole = MPRoleType.Resetting;
+                mpManager.Reset();
                 btn_ClientConnect.Enable();
                 btn_ServerStart.Enable();
-                Log.Message("Reset completed. Current MPRole: " + GurkenplayerMod.MPRole);
+                Log.Message("Reset completed. Current MPRole: " + mpManager.MPRole);
             }
             catch(Exception ex)
             {
@@ -452,12 +463,22 @@ namespace Gurkenplayer
             }
         }
 
+        /// <summary>
+        /// Fires when the Close button on the configuration panel is clicked.
+        /// </summary>
+        /// <param name="component">Triggered UIComponent.</param>
+        /// <param name="eventParam">Mouseinformation.</param>
         void btn_Close_eventClick(UIComponent component, UIMouseEventParameter eventParam)
         {
             base.isVisible = false;
         }
 
-        void Instance_serverStoppedEvent(object sender, EventArgs e)
+        /// <summary>
+        /// Fired when the server stopped.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        void MPServer_serverStoppedEvent(object sender, EventArgs e)
         {
             Log.Message("ServerStoppedEvent");
             try
@@ -472,7 +493,12 @@ namespace Gurkenplayer
                 Log.Error("ServerStoppedEvent error: " + ex.ToString());
             }
         }
-        void Instance_clientDisconnectedEvent(object sender, EventArgs e)
+        /// <summary>
+        /// Fired when the client is 100% disconnected.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        void MPClient_clientDisconnectedEvent(object sender, EventArgs e)
         {
             Log.Message("ClientDisconnectedEvent");
             try
