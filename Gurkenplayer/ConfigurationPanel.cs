@@ -13,7 +13,6 @@ namespace Gurkenplayer
     {
         //Fields
         #region Fields
-        private bool isConfigurationFinished = false;
         MPManager mpManager = MPManager.Instance;
         //General area
         UILabel lbl_Gurkenplayer;
@@ -38,12 +37,6 @@ namespace Gurkenplayer
         #endregion
 
         //Properties
-        public bool IsConfigurationFinished
-        {
-            get { return isConfigurationFinished; }
-            set { isConfigurationFinished = value; }
-        }
-
         //Methods
         public override void Start()
         {
@@ -81,32 +74,6 @@ namespace Gurkenplayer
         /// </summary>
         public override void Update()
         {
-            if (Input.GetKey(KeyCode.LeftControl))
-            {
-                if (Input.GetKeyDown(KeyCode.D))
-                {
-                    Log.IsDebugging = !Log.IsDebugging;
-                    Log.Message((Log.IsDebugging) ? "Log.IsDebugging is true." : "Log.IsDebugging is false");
-                }
-
-                if (Input.GetKeyDown(KeyCode.S))
-                {
-                    mpManager.Reset();
-                }
-
-                if (Input.GetKeyDown(KeyCode.B))
-                {
-                    if (mpManager.MPRole == MPRoleType.Client)
-                        Log.Message(String.Format(">B>Status: Current MPRoleType: {0}; IsClientConnected: {1}; Client StopMessageProcessThread : {2};", mpManager.MPRole, mpManager.MPClient.IsClientConnected, mpManager.MPClient.StopMessageProcessingThread.Condition));
-                    else if (mpManager.MPRole == MPRoleType.Server)
-                        Log.Message(String.Format(">B>Status: Current MPRoleType: {0}; IsServerStarted: {1}; Server StopMessageProcessThread : {2};", mpManager.MPRole, mpManager.MPServer.IsServerStarted, mpManager.MPServer.StopMessageProcessingThread.Condition));
-                    else if (mpManager.MPRole == MPRoleType.Resetting)
-                        Log.Message("mpManager.MPRole is Resetting");
-                    else
-                        Log.Message("No information provided");
-                }
-            }
-            SimulationManager.instance.ForcedSimulationPaused = (IsConfigurationFinished) ? true : false;
         }
 
         /// <summary>
@@ -114,8 +81,11 @@ namespace Gurkenplayer
         /// </summary>
         public override void OnDisable()
         {
-            IsConfigurationFinished = true;
-            //SimulationManager.instance.ForcedSimulationPaused = (IsConfigurationFinished) ? false : true;
+            MPGlobalValues.IsConfigurationFinished = true;
+        }
+        protected override void OnVisibilityChanged()
+        {
+            MPGlobalValues.IsConfigurationFinished = true;
         }
 
         /// <summary>

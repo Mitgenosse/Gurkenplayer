@@ -192,7 +192,7 @@ namespace Gurkenplayer
             //Separate thread in which the received messages are handled
             messageProcessingThread = new Thread(pts);
             messageProcessingThread.Start(server);
-            OnServerStarted(new EventArgs());
+            OnServerStarted(EventArgs.Empty);
             Log.Message("Server started successfuly.");
         }
 

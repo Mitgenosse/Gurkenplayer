@@ -69,6 +69,7 @@
     <Compile Include="Loading.cs" />
     <Compile Include="Log.cs" />
     <Compile Include="MPException.cs" />
+    <Compile Include="MPGlobalValues.cs" />
     <Compile Include="MPManager.cs" />
     <Compile Include="MPMessageType.cs" />
     <Compile Include="MPRoleType.cs" />

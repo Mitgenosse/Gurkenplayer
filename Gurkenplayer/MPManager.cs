@@ -151,16 +151,12 @@ namespace Gurkenplayer
         public void Reset()
         {
             Log.Message("Resetting MPManager instance.");
-            if (IsMPClientInitialized)
-            {
-                Log.Message("Resetting MPClient");
-                ClientUninitialize();
-            }
-            if (IsMPServerInitialized)
-            {
-                Log.Message("Resetting MPServer");
-                ServerUninitialize();
-            }
+
+            Log.Message("Resetting MPClient");
+            ClientUninitialize();
+            Log.Message("Resetting MPServer");
+            ServerUninitialize();
+
 
             instance = new MPManager();
             SetMPRole(MPRoleType.None);
@@ -209,6 +205,7 @@ namespace Gurkenplayer
         {
             Log.Message("Left Server message processing thread!");
             IsProcessMessageThreadRunning = false;
+            ServerUninitialize();
         }
         /// <summary>
         /// Uninitializes the MPServer. Sets it to null.
@@ -347,6 +344,7 @@ namespace Gurkenplayer
         {
             Log.Message("Left Client message processing thread!");
             IsProcessMessageThreadRunning = false;
+            ClientUninitialize();
         }
         /// <summary>
         /// Uninitializes the MPClient. Sets it to null.
