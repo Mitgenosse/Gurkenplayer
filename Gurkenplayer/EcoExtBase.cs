@@ -57,14 +57,14 @@ namespace Gurkenplayer
             }
 
             _internalMoneyAmount = internalMoneyAmount;
-            if (GurkenplayerMod.MPRole == MPRoleType.Server)
+            if (MPManager.Instance.MPRole == MPRoleType.Server)
             {
-                MPServer.Instance.SendEconomyInformationUpdateToAll();
+                MPManager.Instance.MPServer.SendEconomyInformationUpdateToAll();
                 return _internalMoneyAmount;
             }
-            if (GurkenplayerMod.MPRole == MPRoleType.Client)
+            if (MPManager.Instance.MPRole == MPRoleType.Client)
             {
-                MPClient.Instance.SendEconomyInformationUpdateToServer();
+                MPManager.Instance.MPClient.SendEconomyInformationUpdateToServer();
                 return _internalMoneyAmount;
                 
             }
@@ -76,24 +76,24 @@ namespace Gurkenplayer
         /// </summary>
         void SynchronizeMoneyAmount()
         {
-            if (GurkenplayerMod.MPRole == MPRoleType.Server)
+            if (MPManager.Instance.MPRole == MPRoleType.Server)
             {   //If user is a server and there are clients connected, enter the while loop.
-                while (MPServer.Instance.CanSendMessage)
+                while (MPManager.Instance.MPServer.CanSendMessage)
                 {
                     if (!IsEcoUpdateThreadStarted) //If it is not running anymore. Go home.
                         break;
                     Thread.Sleep(444);
-                    MPServer.Instance.SendEconomyInformationUpdateToAll();
+                    MPManager.Instance.MPServer.SendEconomyInformationUpdateToAll();
                 }
             }
-            else if (GurkenplayerMod.MPRole == MPRoleType.Client)
+            else if (MPManager.Instance.MPRole == MPRoleType.Client)
             {   //If user is a netClient and is connected to a server, enter the wile loop.
-                while (MPServer.Instance.CanSendMessage)
+                while (MPManager.Instance.MPServer.CanSendMessage)
                 {
                     if (!IsEcoUpdateThreadStarted)
                         break;
                     Thread.Sleep(444);
-                    MPClient.Instance.SendEconomyInformationUpdateToServer();
+                    MPManager.Instance.MPClient.SendEconomyInformationUpdateToServer();
                 }
             }
             isEcoUpdateThreadStarted = false;

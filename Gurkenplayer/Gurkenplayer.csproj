@@ -77,6 +77,7 @@
     <Compile Include="MPServer.cs" />
     <Compile Include="EcoExtBase.cs" />
     <Compile Include="ServerConfigurationPanel.cs" />
+    <Compile Include="ThreadingExtBase.cs" />
     <Compile Include="User.cs" />
   </ItemGroup>
   <ItemGroup>

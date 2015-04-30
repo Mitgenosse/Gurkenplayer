@@ -91,7 +91,7 @@ namespace Gurkenplayer
 
                 if (Input.GetKeyDown(KeyCode.S))
                 {
-                    mpManager.ServerStop();
+                    mpManager.Reset();
                 }
 
                 if (Input.GetKeyDown(KeyCode.B))

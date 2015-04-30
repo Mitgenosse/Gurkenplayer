@@ -39,14 +39,14 @@ namespace Gurkenplayer
         /// <returns>Modified demand.</returns>
         public override int OnCalculateCommercialDemand(int originalDemand)
         { 
-            if (GurkenplayerMod.MPRole == MPRoleType.Server) //Update all
+            if (MPManager.Instance.MPRole == MPRoleType.Server) //Update all
             {
-                MPServer.Instance.SendDemandInformationUpdateToAll();
+                MPManager.Instance.MPServer.SendDemandInformationUpdateToAll();
                 return _commercialDemand;
             }
-            else if (GurkenplayerMod.MPRole == MPRoleType.Client)
+            else if (MPManager.Instance.MPRole == MPRoleType.Client)
             {
-                MPClient.Instance.SendDemandInformationUpdateToServer();
+                MPManager.Instance.MPClient.SendDemandInformationUpdateToServer();
                 return _commercialDemand;
             }
             return originalDemand;
@@ -59,11 +59,11 @@ namespace Gurkenplayer
         /// <returns>Modified demand.</returns>
         public override int OnCalculateResidentialDemand(int originalDemand)
         {
-            if (GurkenplayerMod.MPRole == MPRoleType.Server)
+            if (MPManager.Instance.MPRole == MPRoleType.Server)
             {
                 return _residentalDemand;
             }
-            else if (GurkenplayerMod.MPRole == MPRoleType.Client)
+            else if (MPManager.Instance.MPRole == MPRoleType.Client)
             {
                 return _residentalDemand;
             }
@@ -77,11 +77,11 @@ namespace Gurkenplayer
         /// <returns>Modified demand.</returns>
         public override int OnCalculateWorkplaceDemand(int originalDemand)
         {
-            if (GurkenplayerMod.MPRole == MPRoleType.Server)
+            if (MPManager.Instance.MPRole == MPRoleType.Server)
             {
                 return _workplaceDemand;
             }
-            else if (GurkenplayerMod.MPRole == MPRoleType.Client)
+            else if (MPManager.Instance.MPRole == MPRoleType.Client)
             {
                 return _workplaceDemand;
             }

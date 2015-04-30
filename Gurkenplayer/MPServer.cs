@@ -170,13 +170,11 @@ namespace Gurkenplayer
             Log.Message("Starting the server. IsServerStarted? " + IsServerStarted + " -> Instance.Stop(). StopMessageProcess...: " + StopMessageProcessingThread);
             Stop();
 
-            Log.Message("Argument check.");
             if (port < 1000 || port > 65535)
                 throw new MPException("I am not going to bind a port under 1000.");
 
             if (maximumPlayerAmount < 1)
                 throw new MPException("You cannot play alone!");
-            Log.Message("Argument check finished.");
 
             //Field configuration
             ServerPort = port;

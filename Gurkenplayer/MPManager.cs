@@ -154,12 +154,12 @@ namespace Gurkenplayer
             if (IsMPClientInitialized)
             {
                 Log.Message("Resetting MPClient");
-                ClientReset();
+                ClientUninitialize();
             }
             if (IsMPServerInitialized)
             {
                 Log.Message("Resetting MPServer");
-                ServerReset();
+                ServerUninitialize();
             }
 
             instance = new MPManager();
@@ -175,7 +175,8 @@ namespace Gurkenplayer
             MPRole = newMPRoleType;
         }
 
-    //SERVER//
+        //SERVER//
+        #region server stuff
         /// <summary>
         /// Initializes the MPServer if it is not already initialized and the MPClient is not initialized.
         /// </summary>
@@ -214,12 +215,6 @@ namespace Gurkenplayer
         /// </summary>
         public void ServerUninitialize()
         {
-            if (IsMPClientInitialized)
-            {
-                Log.Warning("Cannot uninitialize the server. The client is initialized.");
-                return;
-            }
-
             if (!IsMPServerInitialized)
             {
                 Log.Warning("Server is not initialized. Cannot uninitialize.");
@@ -245,7 +240,7 @@ namespace Gurkenplayer
 
             if (!IsMPServerInitialized)
             {
-                Log.Warning("MPServer is not initialized. THere is nothing to reset.");
+                Log.Warning("MPServer is not initialized. There is nothing to reset.");
                 return;
             }
 
@@ -322,8 +317,10 @@ namespace Gurkenplayer
             MPServer.Stop();
             Log.Message("Server stopped.");
         }
+        #endregion
 
-    //CLIENT//
+        //CLIENT//
+        #region client stuff
         /// <summary>
         /// Initilializes the Client if it is not already initialized and the MPServer is not initialized.
         /// </summary>
@@ -356,12 +353,6 @@ namespace Gurkenplayer
         /// </summary>
         public void ClientUninitialize()
         {
-            if (IsMPServerInitialized)
-            {
-                Log.Warning("Cannot uninitialize client. Server is initialized.");
-                return;
-            }
-
             if (!IsMPClientInitialized)
             {
                 Log.Warning("There is nothing to uninitialize.");
@@ -461,5 +452,6 @@ namespace Gurkenplayer
             MPClient.DisconnectFromServer();
             Log.Message("Disconnected from server.");
         }
+        #endregion
     }
 }
