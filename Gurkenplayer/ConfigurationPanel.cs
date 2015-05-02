@@ -83,6 +83,7 @@ namespace Gurkenplayer
         {
             MPGlobalValues.IsConfigurationFinished = true;
         }
+
         protected override void OnVisibilityChanged()
         {
             if (isVisible)

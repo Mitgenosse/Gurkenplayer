@@ -11,25 +11,25 @@ namespace Gurkenplayer
     public class AreaExtBase : AreasExtensionBase
     {
         //Fields
-        static int? _xCoordinate = null; // null == no area to unlock
-        static int? _zCoordinate = null;
+        static int? mpXCoordinate = null; // null == no area to unlock
+        static int? mpZCoordinate = null;
 
         //Properties
-        public static int? _ZCoordinate
+        public static int? MPZCoordinate
         {
-            get { return AreaExtBase._zCoordinate; }
-            set { AreaExtBase._zCoordinate = value; }
+            get { return AreaExtBase.mpZCoordinate; }
+            set { AreaExtBase.mpZCoordinate = value; }
         }
-        public static int? _XCoordinate
+        public static int? MPXCoordinate
         {
-            get { return AreaExtBase._xCoordinate; }
-            set { AreaExtBase._xCoordinate = value; }
+            get { return AreaExtBase.mpXCoordinate; }
+            set { AreaExtBase.mpXCoordinate = value; }
         }
         public static bool IsNewTileAvailableToUnlock
         {
             get
             {
-                if (_xCoordinate != null && _zCoordinate != null) 
+                if (MPXCoordinate != null && MPZCoordinate != null) 
                     return true;
                 else
                     return false;
@@ -37,8 +37,8 @@ namespace Gurkenplayer
         } //If X and Z != null return true
         public static void SetIsNewTileAvailableToUnlockFalse()
         {
-            AreaExtBase._XCoordinate = null;
-            AreaExtBase._ZCoordinate = null;
+            AreaExtBase.MPXCoordinate = null;
+            AreaExtBase.MPZCoordinate = null;
         } //Set nullable X and Z to null
 
         //Methods
@@ -63,8 +63,7 @@ namespace Gurkenplayer
             }
             managers.areas.UnlockArea(x, z, true);
         }
-
-        //A received tile will be unlocked once every 4 seconds simutaniously with the EcoExtBase.OnUpdateMoneyAmount(long internalMoneyAmount)
+        //A received tile will be unlocked simutaniously with the EcoExtBase.OnUpdateMoneyAmount(long internalMoneyAmount)
     }
 }
 

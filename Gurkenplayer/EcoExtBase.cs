@@ -16,7 +16,7 @@ namespace Gurkenplayer
         static long mpInternalMoneyAmount;//MP global internal money amount
         static long mpLastInternalMoneyAmount;
         static long mpCashChangeAmount;
-        bool firstRun = true;
+        static bool firstRun = true;
 
         //Properties
         public static long MPInternalMoneyAmount
@@ -34,7 +34,7 @@ namespace Gurkenplayer
             get { return EcoExtBase.mpCashChangeAmount; }
             set { EcoExtBase.mpCashChangeAmount = value; }
         }
-        public bool FirstRun
+        public static bool FirstRun
         {
             get { return firstRun; }
             set { firstRun = value; }
@@ -51,7 +51,7 @@ namespace Gurkenplayer
         {
             if (AreaExtBase.IsNewTileAvailableToUnlock) //Not a beautiful way to solve the problem. Maybe I can take care of it later.
             {       // Check if a new tile has to be unlocked.
-                managers.areas.UnlockArea((int)AreaExtBase._XCoordinate, (int)AreaExtBase._ZCoordinate, true);
+                managers.areas.UnlockArea((int)AreaExtBase.MPXCoordinate, (int)AreaExtBase.MPZCoordinate, true);
                 AreaExtBase.SetIsNewTileAvailableToUnlockFalse();
             }
             if (FirstRun)
@@ -115,6 +115,7 @@ namespace Gurkenplayer
                 Thread.Sleep(250);
                 MPManager.Instance.MPServer.SendEconomyInformationUpdateToAll();
             }
+            FirstRun = true;
             Log.Warning("Leaving ServerEconomyInformationUpdateThread");
         }
     }

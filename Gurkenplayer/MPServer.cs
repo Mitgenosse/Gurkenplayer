@@ -414,14 +414,14 @@ namespace Gurkenplayer
                     break;
                 case MPMessageType.DemandUpdate: //Receiving demand
                     Log.Message("Server received " + msgType);
-                    DemandExtBase._CommercialDemand = msg.ReadInt32();
-                    DemandExtBase._ResidentalDemand = msg.ReadInt32();
-                    DemandExtBase._WorkplaceDemand = msg.ReadInt32();
+                    DemandExtBase.MPCommercialDemand = msg.ReadInt32();
+                    DemandExtBase.MPResidentalDemand = msg.ReadInt32();
+                    DemandExtBase.MPWorkplaceDemand = msg.ReadInt32();
                     break;
                 case MPMessageType.TileUpdate:
                     Log.Message("Server received " + msgType);
-                    AreaExtBase._XCoordinate = msg.ReadInt32();
-                    AreaExtBase._ZCoordinate = msg.ReadInt32();
+                    AreaExtBase.MPXCoordinate = msg.ReadInt32();
+                    AreaExtBase.MPZCoordinate = msg.ReadInt32();
                     //INFO: The unlock process is activated once every 4 seconds simutaniously with the
                     //EcoExtBase.OnUpdateMoneyAmount(long internalMoneyAmount).
                     //Maybe I find a direct way to unlock a tile within AreaExtBase
@@ -450,7 +450,7 @@ namespace Gurkenplayer
                 netServer.SendToAll(msg, NetDeliveryMethod.ReliableOrdered);
                 netServer.FlushSendQueue();
             }
-        } //TEST: Update money from economymanager values and not from EcoExtBase.value
+        }
 
         /// <summary>
         /// Sends demand update to all. (Commercial demand, residental demand, workplace demand)
@@ -461,13 +461,13 @@ namespace Gurkenplayer
             {
                 NetOutgoingMessage msg = netServer.CreateMessage();
                 msg.Write((int)MPMessageType.DemandUpdate);
-                msg.Write(DemandExtBase._CommercialDemand);
-                msg.Write(DemandExtBase._ResidentalDemand);
-                msg.Write(DemandExtBase._WorkplaceDemand);
+                msg.Write(DemandExtBase.MPCommercialDemand);
+                msg.Write(DemandExtBase.MPResidentalDemand);
+                msg.Write(DemandExtBase.MPWorkplaceDemand);
                 netServer.SendToAll(msg, NetDeliveryMethod.ReliableOrdered);
                 netServer.FlushSendQueue();
             }
-        } //TEST: Update demant information from DemandExtBase properties
+        }
 
         /// <summary>
         /// Sends the information of the new unlocked tile to all.
@@ -487,6 +487,9 @@ namespace Gurkenplayer
             }
         }
 
+        /// <summary>
+        /// Sends information about the current simulation to all clients.
+        /// </summary>
         public void SendSimulationInformationUpdateToAll()
         {
             if (CanSendMessage)

@@ -11,24 +11,25 @@ namespace Gurkenplayer
     public class DemandExtBase : DemandExtensionBase
     {
         //Fields
-        static int _commercialDemand; //Multiplayer commercial demand
-        static int _residentalDemand; //MP residental demand
-        static int _workplaceDemand; //MP workplace demand
+        static int mpCommercialDemand; //Multiplayer commercial demand
+        static int mpResidentalDemand; //MP residental demand
+        static int mpWorkPlaceDemand; //MP workplace demand
+
         //Properties
-        public static int _CommercialDemand
+        public static int MPCommercialDemand
         {
-            get { return _commercialDemand; }
-            set { _commercialDemand = value; }
+            get { return mpCommercialDemand; }
+            set { mpCommercialDemand = value; }
         }
-        public static int _ResidentalDemand
+        public static int MPResidentalDemand
         {
-            get { return _residentalDemand; }
-            set { _residentalDemand = value; }
+            get { return mpResidentalDemand; }
+            set { mpResidentalDemand = value; }
         }
-        public static int _WorkplaceDemand
+        public static int MPWorkplaceDemand
         {
-            get { return _workplaceDemand; }
-            set { _workplaceDemand = value; }
+            get { return mpWorkPlaceDemand; }
+            set { mpWorkPlaceDemand = value; }
         }
 
         //Methods
@@ -38,16 +39,17 @@ namespace Gurkenplayer
         /// <param name="originalDemand">Demand calculated by the game.</param>
         /// <returns>Modified demand.</returns>
         public override int OnCalculateCommercialDemand(int originalDemand)
-        { 
+        {
             if (MPManager.Instance.MPRole == MPRoleType.Server) //Update all
             {
+                MPCommercialDemand = originalDemand;
                 MPManager.Instance.MPServer.SendDemandInformationUpdateToAll();
-                return _commercialDemand;
+                return MPCommercialDemand;
             }
             else if (MPManager.Instance.MPRole == MPRoleType.Client)
             {
-                MPManager.Instance.MPClient.SendDemandInformationUpdateToServer();
-                return _commercialDemand;
+                //MPManager.Instance.MPClient.SendDemandInformationUpdateToServer();
+                return MPCommercialDemand;
             }
             return originalDemand;
         }
@@ -61,11 +63,12 @@ namespace Gurkenplayer
         {
             if (MPManager.Instance.MPRole == MPRoleType.Server)
             {
-                return _residentalDemand;
+                MPResidentalDemand = originalDemand;
+                return MPResidentalDemand;
             }
             else if (MPManager.Instance.MPRole == MPRoleType.Client)
             {
-                return _residentalDemand;
+                return MPResidentalDemand;
             }
             return originalDemand;
         }
@@ -79,11 +82,12 @@ namespace Gurkenplayer
         {
             if (MPManager.Instance.MPRole == MPRoleType.Server)
             {
-                return _workplaceDemand;
+                MPWorkplaceDemand = originalDemand;
+                return MPWorkplaceDemand;
             }
             else if (MPManager.Instance.MPRole == MPRoleType.Client)
             {
-                return _workplaceDemand;
+                return MPWorkplaceDemand;
             }
             return originalDemand;
         }

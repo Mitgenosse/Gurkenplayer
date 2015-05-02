@@ -393,22 +393,19 @@ namespace Gurkenplayer
                 case MPMessageType.MoneyUpdate: //Receiving money
                     Log.Message("Client received " + msgType);
                     long t = msg.ReadInt64();
-                    Log.Message("Received MPInternalCashAmount: " + t);
                     EcoExtBase.MPInternalMoneyAmount = t;
-                    //EcoExtBase._CurrentMoneyAmount = msg.ReadInt64();
-                    //EcoExtBase._InternalMoneyAmount = msg.ReadInt64();
                     break;
                 case MPMessageType.DemandUpdate: //Receiving demand
                     Log.Message("Client received " + msgType);
-                    DemandExtBase._CommercialDemand = msg.ReadInt32();
-                    DemandExtBase._ResidentalDemand = msg.ReadInt32();
-                    DemandExtBase._WorkplaceDemand = msg.ReadInt32();
+                    DemandExtBase.MPCommercialDemand = msg.ReadInt32();
+                    DemandExtBase.MPResidentalDemand = msg.ReadInt32();
+                    DemandExtBase.MPWorkplaceDemand = msg.ReadInt32();
                     break;
                 case MPMessageType.TileUpdate:
                     Log.Message("Client received " + msgType);
-                    AreaExtBase._XCoordinate = msg.ReadInt32();
-                    AreaExtBase._ZCoordinate = msg.ReadInt32();
-                    //INFO: The unlock process is activated once every 4 seconds simutaniously with the
+                    AreaExtBase.MPXCoordinate = msg.ReadInt32();
+                    AreaExtBase.MPZCoordinate = msg.ReadInt32();
+                    //INFO: The unlock process is activated simutaniously with the
                     //EcoExtBase.OnUpdateMoneyAmount(long internalMoneyAmount).
                     //Maybe I find a direct way to unlock a tile within AreaExtBase
                     break;
@@ -424,7 +421,7 @@ namespace Gurkenplayer
         }
 
         /// <summary>
-        /// Send the EconomyInformation of the netClient to the netServer to synchronize.
+        /// Send the EconomyInformation of the MPClient to the MPServer to synchronize.
         /// </summary>
         public void SendEconomyInformationUpdateToServer()
         {
@@ -440,7 +437,7 @@ namespace Gurkenplayer
         }
 
         /// <summary>
-        /// Sends the DemandInformation of the netClient to the netServer to synchronize.
+        /// Sends the DemandInformation of the MPClient to the MPServer to synchronize.
         /// </summary>
         public void SendDemandInformationUpdateToServer()
         {
@@ -448,9 +445,9 @@ namespace Gurkenplayer
             {
                 NetOutgoingMessage msg = netClient.CreateMessage();
                 msg.Write((int)MPMessageType.DemandUpdate);
-                msg.Write(DemandExtBase._CommercialDemand);
-                msg.Write(DemandExtBase._ResidentalDemand);
-                msg.Write(DemandExtBase._WorkplaceDemand);
+                msg.Write(DemandExtBase.MPCommercialDemand);
+                msg.Write(DemandExtBase.MPResidentalDemand);
+                msg.Write(DemandExtBase.MPWorkplaceDemand);
                 netClient.SendMessage(msg, NetDeliveryMethod.ReliableOrdered);
                 netClient.FlushSendQueue();
             }
@@ -474,6 +471,9 @@ namespace Gurkenplayer
             }
         }
 
+        /// <summary>
+        /// Sends a message to the MPServer containing the current simulation information.
+        /// </summary>
         public void SendSimulationInformationUpdateToServer()
         {
             if (CanSendMessage)

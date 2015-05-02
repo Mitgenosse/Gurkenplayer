@@ -11,8 +11,24 @@ namespace Gurkenplayer
 
     public class ThreadingExtBase : ThreadingExtensionBase
     {
-        bool lastSimulationPausedState = false;
+        //Fields
+        bool mpLastSimulationPausedState = false;
+        int mpLastSelectedSimulationSpeedState = 0;
 
+        //Properties
+        public bool MPLastSimulationPausedState
+        {
+            get { return mpLastSimulationPausedState; }
+            set { mpLastSimulationPausedState = value; }
+        }
+        public int MPLastSelectedSimulationSpeedState
+        {
+            get { return mpLastSelectedSimulationSpeedState; }
+            set { mpLastSelectedSimulationSpeedState = value; }
+        }
+
+        System.Random rdm = new System.Random((int)1125463589);
+        //Methods
         /// <summary>
         /// Called once every frame.
         /// </summary>
@@ -30,8 +46,11 @@ namespace Gurkenplayer
 
                 if (Input.GetKeyDown(KeyCode.C))
                 {
-                    UIComponent cpanel = UIView.Find("MPConfigurationPanel", typeof(UIPanel));
-                    cpanel.isVisible = true;
+                    UIComponent cpanel = (UIComponent)UIView.Find(searchName: "MPConfigurationPanel", type: typeof(UIPanel));
+                    if (cpanel.isVisible)
+                        cpanel.isVisible = false;
+                    else
+                        cpanel.isVisible = true;
                 }
 
                 if (Input.GetKeyDown(KeyCode.S))
@@ -50,8 +69,21 @@ namespace Gurkenplayer
                     else
                         Log.Message("No information provided. MPRole is probably set to None.");
                 }
-            }
 
+                if (Input.GetKeyDown(KeyCode.R))
+                {
+                    Vector3 startPos = new Vector3(rdm.Next(1000), 0, rdm.Next(1000));
+                    Vector3 endPos = new Vector3(rdm.Next(1000), 0, rdm.Next(1000));
+                    try
+                    {
+                        Loading.BuildRoad(startPos, endPos, 38);
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Message(ex.ToString());
+                    }
+                }
+            }
             SimulationManager.instance.ForcedSimulationPaused = (MPGlobalValues.IsConfigurationFinished) ? false : true;
         }
 
@@ -60,7 +92,7 @@ namespace Gurkenplayer
         /// </summary>
         public override void OnAfterSimulationTick()
         {
-            if (lastSimulationPausedState != SimulationManager.instance.SimulationPaused)
+            if (MPLastSimulationPausedState != SimulationManager.instance.SimulationPaused || MPLastSelectedSimulationSpeedState != SimulationManager.instance.SelectedSimulationSpeed)
             {   //If the simulationPaused state changed since the last tick, inform the others.
                 if (MPManager.Instance.MPRole == MPRoleType.Server)
                 {
@@ -71,7 +103,8 @@ namespace Gurkenplayer
                     MPManager.Instance.MPClient.SendSimulationInformationUpdateToServer();
                 }
             }
-            lastSimulationPausedState = SimulationManager.instance.SimulationPaused;
+            MPLastSimulationPausedState = SimulationManager.instance.SimulationPaused;
+            MPLastSelectedSimulationSpeedState = SimulationManager.instance.SelectedSimulationSpeed;
         }
     }
 }
