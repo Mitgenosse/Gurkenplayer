@@ -7,7 +7,7 @@ using System.Text;
 namespace Gurkenplayer
 {
     /// <summary>
-    /// The ServerConfigurationPanel is opened, after the user started a server.
+    /// The ServerConfigurationPanel is opened, after the user started a netServer.
     /// </summary>
     public class ServerConfigurationPanel : UIPanel
     {

@@ -20,6 +20,7 @@ namespace Gurkenplayer
         MPServer mpServer;
         //The message processing thread can be stopped by setting StopProcessMessageThread in MPManager
         //or even in MPClient/Server to true. They share this condition.
+        //StopProcessMessageThread is also used by other threads like in the EcoExtBase class.
         static MPSharedCondition stopProcessMessageThread = new MPSharedCondition(false);
 
         //Properties
@@ -32,7 +33,7 @@ namespace Gurkenplayer
             set { isProcessMessageThreadRunning = value; }
         }
         /// <summary>
-        /// The condition which stops the ProcessMessage threads of server and client.
+        /// The condition which stops the ProcessMessage threads of netServer and client.
         /// </summary>
         public static MPSharedCondition StopProcessMessageThread
         {
@@ -172,7 +173,7 @@ namespace Gurkenplayer
         }
 
         //SERVER//
-        #region server stuff
+        #region netServer stuff
         /// <summary>
         /// Initializes the MPServer if it is not already initialized and the MPClient is not initialized.
         /// </summary>
@@ -244,11 +245,12 @@ namespace Gurkenplayer
             Log.Message("Resetting server.");
             ServerStop();
             MPServer = new MPServer(StopProcessMessageThread);
+            SetMPRole(MPRoleType.Server);
             Log.Message("Server resetted. New instance created.");
         }
         
         /// <summary>
-        /// Starts the server.
+        /// Starts the netServer.
         /// </summary>
         public void ServerStart()
         {
@@ -271,10 +273,10 @@ namespace Gurkenplayer
             Log.Message("Server started.");
         }
         /// <summary>
-        /// Starts the server.
+        /// Starts the netServer.
         /// </summary>
         /// <param name="port">The port to listen on.</param>
-        /// <param name="password">The password of the server.</param>
+        /// <param name="password">The password of the netServer.</param>
         /// <param name="maximumPlayerAmount">Maximum amount of players.</param>
         public void ServerStart(int port, string password, int maximumPlayerAmount)
         {
@@ -295,7 +297,7 @@ namespace Gurkenplayer
             Log.Message("Server started.");
         }
         /// <summary>
-        /// Stops the server.
+        /// Stops the netServer.
         /// </summary>
         public void ServerStop()
         {
@@ -336,6 +338,7 @@ namespace Gurkenplayer
 
             Log.Message("Initializing client.");
             MPClient = new MPClient(StopProcessMessageThread);
+            SetMPRole(MPRoleType.Client);
             MPClient.clientLeftProcessMessageThread += MPClient_clientLeftProcessMessageThread;
             Log.Message("Client initialized.");
         }
@@ -383,6 +386,7 @@ namespace Gurkenplayer
             Log.Message("Resetting client");
             ClientDisconnect();
             MPClient = new MPClient(StopProcessMessageThread);
+            SetMPRole(MPRoleType.Client);
             MPClient.clientLeftProcessMessageThread += MPClient_clientLeftProcessMessageThread;
             Log.Message("Client resetted.");
         }
@@ -408,11 +412,11 @@ namespace Gurkenplayer
             Log.Message("Client connected.");
         }
         /// <summary>
-        /// Connects to a remote server.
+        /// Connects to a remote netServer.
         /// </summary>
-        /// <param name="ip">The IP address of the server.</param>
-        /// <param name="port">The port of the server.</param>
-        /// <param name="password">The server password.</param>
+        /// <param name="ip">The IP address of the netServer.</param>
+        /// <param name="port">The port of the netServer.</param>
+        /// <param name="password">The netServer password.</param>
         public void ClientConnect(string ip, int port, string password)
         {
             if (IsMPServerInitialized)
@@ -431,7 +435,7 @@ namespace Gurkenplayer
             Log.Message("Client connected.");
         }
         /// <summary>
-        /// Disconnects from the server.
+        /// Disconnects from the netServer.
         /// </summary>
         public void ClientDisconnect()
         {

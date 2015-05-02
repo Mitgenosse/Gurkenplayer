@@ -85,7 +85,10 @@ namespace Gurkenplayer
         }
         protected override void OnVisibilityChanged()
         {
-            MPGlobalValues.IsConfigurationFinished = true;
+            if (isVisible)
+                MPGlobalValues.IsConfigurationFinished = false;
+            else
+                MPGlobalValues.IsConfigurationFinished = true;
         }
 
         /// <summary>
@@ -345,7 +348,7 @@ namespace Gurkenplayer
         }
 
         /// <summary>
-        /// Starts the server eventClick event.
+        /// Starts the netServer eventClick event.
         /// </summary>
         /// <param name="component">Triggered UIComponent.</param>
         /// <param name="eventParam"></param>
@@ -354,15 +357,16 @@ namespace Gurkenplayer
             mpManager.ServerInitialize();
             if (mpManager.IsMPServerInitialized)
             {
+                mpManager.MPServer.clientConnectedEvent += MPServer_clientConnectedEvent;
                 mpManager.MPServer.serverStoppedEvent += MPServer_serverStoppedEvent;
                 try
                 {
                     Log.Message(String.Format("Trying to start a lobby on port {0} with the username {1} and password {2}", txt_ClientPort.text, txt_Username.text, txt_Password.text));
-                    //Try to start the server on click
+                    //Try to start the netServer on click
                     mpManager.ServerStart(port: Convert.ToInt32(txt_ServerPort.text), password: txt_Password.text, maximumPlayerAmount: Convert.ToInt32(txt_ServerPlayers.text));
 
                     if (mpManager.MPServer.IsServerStarted)
-                    {   //Check if the server is started correctly.
+                    {   //Check if the netServer is started correctly.
                         Log.Message("Server lobby started! Current MPRole is " + mpManager.MPRole);
                         btn_ClientConnect.Disable();
                         btn_ServerStart.Disable();
@@ -379,9 +383,8 @@ namespace Gurkenplayer
             }
         }
 
-
         /// <summary>
-        /// Connects to the server eventClick event.
+        /// Connects to the netServer eventClick event.
         /// </summary>
         /// <param name="component">Triggered UIComponent.</param>
         /// <param name="eventParam">Mouseinformaion.</param>
@@ -390,11 +393,12 @@ namespace Gurkenplayer
             mpManager.ClientInitialize();
             if (mpManager.IsMPClientInitialized)
             {
+                mpManager.MPClient.clientConnectedEvent += MPClient_clientConnectedEvent;
                 mpManager.MPClient.clientDisconnectedEvent += MPClient_clientDisconnectedEvent;
                 try
                 {
                     Log.Message(String.Format("Trying to connect to {0}:{1} with the username _{2}_ and password _{3}_", txt_ClientIP.text, txt_ClientPort.text, txt_Username.text, txt_Password.text));
-                    //Tries to connect to the server
+                    //Tries to connect to the netServer
                     mpManager.ClientConnect(txt_ClientIP.text, Convert.ToInt32(txt_ClientPort.text), txt_Password.text);
                     if (mpManager.MPClient.IsClientConnected)
                     {   //Check if the netClient is connected correctly
@@ -444,7 +448,17 @@ namespace Gurkenplayer
         }
 
         /// <summary>
-        /// Fired when the server stopped.
+        /// Fired when a client connected to the netServer.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        void MPServer_clientConnectedEvent(object sender, EventArgs e)
+        {
+            MPGlobalValues.IsConfigurationFinished = true;
+        }
+
+        /// <summary>
+        /// Fired when the netServer stopped.
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
@@ -462,6 +476,16 @@ namespace Gurkenplayer
             {
                 Log.Error("ServerStoppedEvent error: " + ex.ToString());
             }
+        }
+        /// <summary>
+        /// Fired when the client is 100% connected.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        void MPClient_clientConnectedEvent(object sender, EventArgs e)
+        {
+            MPManager.Instance.SetMPRole(MPRoleType.Client);
+            MPGlobalValues.IsConfigurationFinished = true;
         }
         /// <summary>
         /// Fired when the client is 100% disconnected.

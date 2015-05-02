@@ -43,7 +43,7 @@ namespace Gurkenplayer
 
         //Methods
         /// <summary>
-        /// Invoked when a new area is unlocked. It sends a message to server/clients containing the coordinates of the new tile.
+        /// Invoked when a new area is unlocked. It sends a message to netServer/clients containing the coordinates of the new tile.
         /// </summary>
         /// <param name="x">X coordinate of the new tile.</param>
         /// <param name="z">Z coordinate of the new tile.</param>
@@ -59,7 +59,7 @@ namespace Gurkenplayer
             {
                 managers.areas.UnlockArea(x, z, true);
                 MPManager.Instance.MPClient.SendAreaInformationUpdateToServer(x, z);
-                //Send unlocked area to server
+                //Send unlocked area to netServer
             }
             managers.areas.UnlockArea(x, z, true);
         }

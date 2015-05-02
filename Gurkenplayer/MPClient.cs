@@ -70,7 +70,7 @@ namespace Gurkenplayer
         //Properties
         #region props
         /// <summary>
-        /// Returns the IP-Address of the server.
+        /// Returns the IP-Address of the netServer.
         /// </summary>
         public string ServerIP
         {
@@ -79,7 +79,7 @@ namespace Gurkenplayer
         }
 
         /// <summary>
-        /// Returns the used server password.
+        /// Returns the used netServer password.
         /// </summary>
         public string ServerPassword
         {
@@ -88,7 +88,7 @@ namespace Gurkenplayer
         }
 
         /// <summary>
-        /// Returns the used server port.
+        /// Returns the used netServer port.
         /// </summary>
         public int ServerPort
         {
@@ -97,7 +97,7 @@ namespace Gurkenplayer
         }
 
         /// <summary>
-        /// Indicates if the netClient is connected to a server. Is set to "true" inside the StatusChanged of ProcessMessage.
+        /// Indicates if the netClient is connected to a netServer. Is set to "true" inside the StatusChanged of ProcessMessage.
         /// </summary>
         public bool IsClientConnected
         {
@@ -123,7 +123,7 @@ namespace Gurkenplayer
         }
 
         /// <summary>
-        /// Returns true when the netClient is initialized and connected to a server.
+        /// Returns true when the netClient is initialized and connected to a netServer.
         /// </summary>
         public bool CanSendMessage
         {
@@ -187,12 +187,12 @@ namespace Gurkenplayer
 
         //Methods
         /// <summary>
-        /// Method with optional parameters which is used to connect to an existing server.
+        /// Method with optional parameters which is used to connect to an existing netServer.
         /// Empty arguments take the default value.
         /// </summary>
-        /// <param name="ip">The server ip to connect to. Default: localhost</param>
-        /// <param name="port">The server port which is used to connect. Default: 4230</param>
-        /// <param name="password">The server password which is used to connect. Default: none</param>
+        /// <param name="ip">The netServer ip to connect to. Default: localhost</param>
+        /// <param name="port">The netServer port which is used to connect. Default: 4230</param>
+        /// <param name="password">The netServer password which is used to connect. Default: none</param>
         public void ConnectToServer(string ip = "localhost", int port = 4230, string password = "")
         {
             Log.Message("Client connecting to server. if(IsClientConnected) -> Disconnect...(): " + IsClientConnected + ". IsClientConnected: " + IsClientConnected + " Current MPRole: " + MPManager.Instance.MPRole);
@@ -229,7 +229,7 @@ namespace Gurkenplayer
         }
 
         /// <summary>
-        /// Disconnects the netClient from the server
+        /// Disconnects the netClient from the netServer
         /// </summary>
         public void DisconnectFromServer()
         {
@@ -293,7 +293,7 @@ namespace Gurkenplayer
         }
 
         /// <summary>
-        /// ProcessMessage runs in a separate thread and manages the received server messages.
+        /// ProcessMessage runs in a separate thread and manages the received netServer messages.
         /// </summary>
         /// <param name="obj">object obj represents a NetClient object.</param>
         private void ProcessMessage(object obj)
@@ -392,8 +392,11 @@ namespace Gurkenplayer
             {
                 case MPMessageType.MoneyUpdate: //Receiving money
                     Log.Message("Client received " + msgType);
-                    EcoExtBase._CurrentMoneyAmount = msg.ReadInt64();
-                    EcoExtBase._InternalMoneyAmount = msg.ReadInt64();
+                    long t = msg.ReadInt64();
+                    Log.Message("Received MPInternalCashAmount: " + t);
+                    EcoExtBase.MPInternalMoneyAmount = t;
+                    //EcoExtBase._CurrentMoneyAmount = msg.ReadInt64();
+                    //EcoExtBase._InternalMoneyAmount = msg.ReadInt64();
                     break;
                 case MPMessageType.DemandUpdate: //Receiving demand
                     Log.Message("Client received " + msgType);
@@ -409,6 +412,11 @@ namespace Gurkenplayer
                     //EcoExtBase.OnUpdateMoneyAmount(long internalMoneyAmount).
                     //Maybe I find a direct way to unlock a tile within AreaExtBase
                     break;
+                case MPMessageType.SimulationUpdate:
+                    Log.Message("Client received " + msgType);
+                    SimulationManager.instance.SelectedSimulationSpeed = msg.ReadInt32();
+                    SimulationManager.instance.SimulationPaused = msg.ReadBoolean();
+                    break;
                 default: //Unbehandelte ID
                     Log.Warning(String.Format("Client ProgressData: Unhandled ID/type: {0}/{1} ", (int)msgType, msgType));
                     break;
@@ -416,7 +424,7 @@ namespace Gurkenplayer
         }
 
         /// <summary>
-        /// Send the EconomyInformation of the netClient to the server to synchronize.
+        /// Send the EconomyInformation of the netClient to the netServer to synchronize.
         /// </summary>
         public void SendEconomyInformationUpdateToServer()
         {
@@ -424,15 +432,15 @@ namespace Gurkenplayer
             {
                 NetOutgoingMessage msg = netClient.CreateMessage();
                 msg.Write((int)MPMessageType.MoneyUpdate);
-                msg.Write(EconomyManager.instance.LastCashAmount);//EcoExtBase._CurrentMoneyAmount
-                msg.Write(EconomyManager.instance.InternalCashAmount);//EcoExtBase._InternalMoneyAmount
+                msg.Write(EcoExtBase.MPCashChangeAmount);
                 netClient.SendMessage(msg, NetDeliveryMethod.ReliableOrdered);
                 netClient.FlushSendQueue();
+                EcoExtBase.MPCashChangeAmount = 0;
             }
         }
 
         /// <summary>
-        /// Sends the DemandInformation of the netClient to the server to synchronize.
+        /// Sends the DemandInformation of the netClient to the netServer to synchronize.
         /// </summary>
         public void SendDemandInformationUpdateToServer()
         {
@@ -449,7 +457,7 @@ namespace Gurkenplayer
         }
 
         /// <summary>
-        /// Sends a message to the server indicating which tile shall be unlocked.
+        /// Sends a message to the netServer indicating which tile shall be unlocked.
         /// </summary>
         /// <param name="x">X coordinate of the tile.</param>
         /// <param name="z">Z coordinate of the tile.</param>
@@ -461,6 +469,19 @@ namespace Gurkenplayer
                 msg.Write((int)MPMessageType.TileUpdate);
                 msg.Write(x);
                 msg.Write(z);
+                netClient.SendMessage(msg, NetDeliveryMethod.ReliableOrdered);
+                netClient.FlushSendQueue();
+            }
+        }
+
+        public void SendSimulationInformationUpdateToServer()
+        {
+            if (CanSendMessage)
+            {
+                NetOutgoingMessage msg = netClient.CreateMessage();
+                msg.Write((int)MPMessageType.SimulationUpdate);
+                msg.Write(SimulationManager.instance.SelectedSimulationSpeed);
+                msg.Write(SimulationManager.instance.SimulationPaused);
                 netClient.SendMessage(msg, NetDeliveryMethod.ReliableOrdered);
                 netClient.FlushSendQueue();
             }

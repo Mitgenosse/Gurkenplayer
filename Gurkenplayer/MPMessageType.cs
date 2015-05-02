@@ -16,6 +16,7 @@ namespace Gurkenplayer
         TileUpdate,
         StreetUpdate,
         TimeUpdate,
-        PopulationUpdate
+        PopulationUpdate,
+        SimulationUpdate
     }
 }
