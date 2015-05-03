@@ -13,7 +13,7 @@ namespace Gurkenplayer
     public class EcoExtBase : EconomyExtensionBase
     {
         //Fields
-        static long mpInternalMoneyAmount;//MP global internal money amount
+        static long mpInternalMoneyAmount;// MP global internal money amount
         static long mpLastInternalMoneyAmount;
         static long mpCashChangeAmount;
         static bool firstRun = true;
@@ -49,7 +49,7 @@ namespace Gurkenplayer
         /// <returns>The current money amount.</returns>
         public override long OnUpdateMoneyAmount(long internalMoneyAmount)
         {
-            if (AreaExtBase.IsNewTileAvailableToUnlock) //Not a beautiful way to solve the problem. Maybe I can take care of it later.
+            if (AreaExtBase.IsNewTileAvailableToUnlock) // Not a beautiful way to solve the problem. Maybe I can take care of it later.
             {       // Check if a new tile has to be unlocked.
                 managers.areas.UnlockArea((int)AreaExtBase.MPXCoordinate, (int)AreaExtBase.MPZCoordinate, true);
                 AreaExtBase.SetIsNewTileAvailableToUnlockFalse();
@@ -59,33 +59,33 @@ namespace Gurkenplayer
                 MPInternalMoneyAmount = internalMoneyAmount;
                 MPCashChangeAmount = 0;
             }
-            //MPLastInternalMoneyAmount = MPInternalMoneyAmount;  //Not important atm
+            //MPLastInternalMoneyAmount = MPInternalMoneyAmount;  // Not important atm
 
             if (MPManager.Instance.MPRole == MPRoleType.Server)
             {
-                //Starting thread to inform the clients every 250ms about the new MPInternalMoneyAmount
+                // Starting thread to inform the clients every 250ms about the new MPInternalMoneyAmount
                 if (FirstRun)
                 {
                     Thread thread = new Thread(ServerEconomyInformationUpdateThread);
                     thread.Start();
                     FirstRun = false;
                 }
-                //MPInternalMoneyAmount = internalMoneyAmount; //Not important atm
+                //MPInternalMoneyAmount = internalMoneyAmount; // Not important atm
                 MPInternalMoneyAmount = MPInternalMoneyAmount - MPCashChangeAmount;
 
-                EcoExtBase.MPCashChangeAmount = 0; //Reset the MPCashChangeAmount after updating the MPInternalMoneyAmount
-                return MPInternalMoneyAmount; //If user is not netServer or netClient, he should not be connected. Return original value
+                EcoExtBase.MPCashChangeAmount = 0; // Reset the MPCashChangeAmount after updating the MPInternalMoneyAmount
+                return MPInternalMoneyAmount; // If user is not netServer or netClient, he should not be connected. Return original value
             }
 
             if (MPManager.Instance.MPRole == MPRoleType.Client)
             {
                 FirstRun = false;
-                //The client just sends his expenses to the server and receives the MPInternalMoneyAmount update.
+                // The client just sends his expenses to the server and receives the MPInternalMoneyAmount update.
                 MPManager.Instance.MPClient.SendEconomyInformationUpdateToServer(); 
                 return MPInternalMoneyAmount; //If user is not netServer or netClient, he should not be connected. Return original value
             }
 
-            //If the user is not a server or a client, just go on like normal.
+            // If the user is not a server or a client, just go on like normal.
             return internalMoneyAmount;
         }
 

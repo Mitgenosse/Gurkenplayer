@@ -11,11 +11,11 @@ namespace Gurkenplayer
 
     public class ThreadingExtBase : ThreadingExtensionBase
     {
-        //Fields
+        // Fields
         bool mpLastSimulationPausedState = false;
         int mpLastSelectedSimulationSpeedState = 0;
 
-        //Properties
+        // Properties
         public bool MPLastSimulationPausedState
         {
             get { return mpLastSimulationPausedState; }
@@ -28,7 +28,7 @@ namespace Gurkenplayer
         }
 
         System.Random rdm = new System.Random((int)1125463589);
-        //Methods
+        // Methods
         /// <summary>
         /// Called once every frame.
         /// </summary>
@@ -39,7 +39,7 @@ namespace Gurkenplayer
             if (Input.GetKey(KeyCode.LeftControl))
             {
                 if (Input.GetKeyDown(KeyCode.D))
-                {   //Enable and disable debug
+                {   // Enable and disable debug
                     Log.IsDebugging = !Log.IsDebugging;
                     Log.Message((Log.IsDebugging) ? "Log.IsDebugging is true." : "Log.IsDebugging is false");
                 }
@@ -54,12 +54,12 @@ namespace Gurkenplayer
                 }
 
                 if (Input.GetKeyDown(KeyCode.S))
-                {   //Reset MPManager
+                {   // Reset MPManager
                     MPManager.Instance.Reset();
                 }
 
                 if (Input.GetKeyDown(KeyCode.B))
-                {   //Receive status of current sesstion
+                {   // Receive status of current sesstion
                     if (MPManager.Instance.MPRole == MPRoleType.Client)
                         Log.Message(String.Format(">B>Status: Current MPRoleType: {0}; IsClientConnected: {1}; Client StopMessageProcessThread : {2};", MPManager.Instance.MPRole, MPManager.Instance.MPClient.IsClientConnected, MPManager.Instance.MPClient.StopMessageProcessingThread.Condition));
                     else if (MPManager.Instance.MPRole == MPRoleType.Server)
@@ -71,12 +71,12 @@ namespace Gurkenplayer
                 }
 
                 if (Input.GetKeyDown(KeyCode.R))
-                {
+                {   // Place road random
                     Vector3 startPos = new Vector3(rdm.Next(1000), 0, rdm.Next(1000));
                     Vector3 endPos = new Vector3(rdm.Next(1000), 0, rdm.Next(1000));
                     try
                     {
-                        Loading.BuildRoad(startPos, endPos, 38);
+                        RoadBuildTest.BuildRoad(startPos, endPos, 38);
                     }
                     catch (Exception ex)
                     {
@@ -93,7 +93,7 @@ namespace Gurkenplayer
         public override void OnAfterSimulationTick()
         {
             if (MPLastSimulationPausedState != SimulationManager.instance.SimulationPaused || MPLastSelectedSimulationSpeedState != SimulationManager.instance.SelectedSimulationSpeed)
-            {   //If the simulationPaused state changed since the last tick, inform the others.
+            {   // If the simulationPaused state changed since the last tick, inform the others.
                 if (MPManager.Instance.MPRole == MPRoleType.Server)
                 {
                     MPManager.Instance.MPServer.SendSimulationInformationUpdateToAll();

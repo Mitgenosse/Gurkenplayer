@@ -363,11 +363,11 @@ namespace Gurkenplayer
                 try
                 {
                     Log.Message(String.Format("Trying to start a lobby on port {0} with the username {1} and password {2}", txt_ClientPort.text, txt_Username.text, txt_Password.text));
-                    //Try to start the netServer on click
+                    // Try to start the netServer on click
                     mpManager.ServerStart(port: Convert.ToInt32(txt_ServerPort.text), password: txt_Password.text, maximumPlayerAmount: Convert.ToInt32(txt_ServerPlayers.text));
 
                     if (mpManager.MPServer.IsServerStarted)
-                    {   //Check if the netServer is started correctly.
+                    {   // Check if the netServer is started correctly.
                         Log.Message("Server lobby started! Current MPRole is " + mpManager.MPRole);
                         btn_ClientConnect.Disable();
                         btn_ServerStart.Disable();
@@ -399,10 +399,10 @@ namespace Gurkenplayer
                 try
                 {
                     Log.Message(String.Format("Trying to connect to {0}:{1} with the username _{2}_ and password _{3}_", txt_ClientIP.text, txt_ClientPort.text, txt_Username.text, txt_Password.text));
-                    //Tries to connect to the netServer
+                    // Tries to connect to the netServer
                     mpManager.ClientConnect(txt_ClientIP.text, Convert.ToInt32(txt_ClientPort.text), txt_Password.text);
                     if (mpManager.MPClient.IsClientConnected)
-                    {   //Check if the netClient is connected correctly
+                    {   // Check if the netClient is connected correctly
                         btn_ClientConnect.Disable();
                         btn_ServerStart.Disable();
                     }

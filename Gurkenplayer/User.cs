@@ -6,14 +6,17 @@ using System.Text;
 
 namespace Gurkenplayer
 {
+    /// <summary>
+    /// Not used atm.
+    /// </summary>
     public class User
     {
-        //Field
+        // Field
         string username;
         NetConnection netConnection;
         MPRoleType mpRole;
 
-        //Properties
+        // Properties
         public string Username
         {
             get { return username; }
@@ -30,7 +33,7 @@ namespace Gurkenplayer
             set { mpRole = value; }
         }
 
-        //Constructor
+        // Constructor
         public User(string username, NetConnection netConnection = null, MPRoleType mpRole = MPRoleType.Client)
         {
             this.username = username;
@@ -38,7 +41,7 @@ namespace Gurkenplayer
             this.mpRole = mpRole;
         }
 
-        //Static methods
+        // Static methods
         public static void RemoveFromList(List<User> userList, NetConnection netConnection)
         {
             foreach (User user in userList)

@@ -6,6 +6,7 @@ using System.Text;
 using Lidgren.Network;
 using System.Threading;
 using ICities;
+using ColossalFramework.Plugins;
 
 namespace Gurkenplayer
 {
@@ -221,7 +222,8 @@ namespace Gurkenplayer
         /// </summary>
         public void Stop()
         {
-            if (!IsServerStarted) //If netServer is not started, return
+            //If netServer is not started, return
+            if (!IsServerStarted) 
                 return;
 
             try
@@ -299,12 +301,12 @@ namespace Gurkenplayer
                 StopMessageProcessingThread.Condition = false;
                 MPManager.Instance.IsProcessMessageThreadRunning = true;
                 while (!StopMessageProcessingThread.Condition)
-                { //As long as the netServer is started
+                { // As long as the netServer is started
                     while ((msg = netServer.ReadMessage()) != null)
                     {
                         switch (msg.MessageType)
                         {
-                            //Debuggen
+                            // Debuggen
                             #region Debug
                             case NetIncomingMessageType.VerboseDebugMessage:
                             case NetIncomingMessageType.DebugMessage:
@@ -314,7 +316,7 @@ namespace Gurkenplayer
                                 break;
                             #endregion
 
-                            //StatusChanged
+                            // StatusChanged
                             #region NetIncomingMessageType.StatusChanged
                             case NetIncomingMessageType.StatusChanged:
                                 NetConnectionStatus state = (NetConnectionStatus)msg.ReadByte();
@@ -333,7 +335,7 @@ namespace Gurkenplayer
                                 break;
                             #endregion
 
-                            //If the message contains data
+                            // If the message contains data
                             #region NetIncomingMessageType.Data
                             case NetIncomingMessageType.Data:
                                 Log.Message("Server Incoming Message Data.");
@@ -343,32 +345,40 @@ namespace Gurkenplayer
                                 break;
                             #endregion
 
-                            //Connectionapproval
+                            // Connectionapproval
                             #region NetIncomingMessageType.ConnectionApproval
                             case NetIncomingMessageType.ConnectionApproval:
-                                //Connection logic. Is the user allowed to connect
-                                //Receive information to process
+                                // Connection logic. Is the user allowed to connect
+                                // Receive information to process
                                 string sentPassword = msg.ReadString();
                                 string sentUsername = msg.ReadString();
+                                int sentEnabledModCount = msg.ReadInt32();
 
                                 if (netServer.ConnectionsCount <= ServerMaximumPlayerAmount)
-                                {
-                                    Log.Warning("User (" + sentUsername + ") trying to connect. Sent password ->" + sentPassword);
+                                {   // Check if server is full
+                                    Log.Warning(String.Format("User ({0}) trying to connect. Sent password: {1}", sentUsername, sentPassword));
                                     if (ServerPassword == sentPassword)
-                                    {
-                                        msg.SenderConnection.Approve();
-                                        Log.Warning("User (" + sentUsername + ") approved.");
+                                    {   // Password is the same
+                                        if (PluginManager.instance.enabledModCount == sentEnabledModCount)
+                                        {   // The client and server have the same amount of mods enabled
+                                            msg.SenderConnection.Approve();
+                                            Log.Warning("User (" + sentUsername + ") approved.");
+                                        }
+                                        else
+                                        {
+                                            msg.SenderConnection.Deny();
+                                            Log.Warning(String.Format("User ({0}) denied. The user has a different amount of mods enabled. User: {1}; Server: {2}", sentUsername, sentEnabledModCount, PluginManager.instance.enabledModCount));                                        }
                                     }
                                     else
                                     {
                                         msg.SenderConnection.Deny();
-                                        Log.Warning("User (" + sentUsername + ") denied. Wrong password.");
+                                        Log.Warning(String.Format("User ({0}) denied. Wrong password.", sentUsername));
                                     }
                                 }
                                 else
                                 {
                                     msg.SenderConnection.Deny();
-                                    Log.Warning("User (" + sentUsername + ") denied. Game is full.");
+                                    Log.Warning(String.Format("User ({0}) denied. Game is full.", sentUsername));
                                 }
                                 break;
                             #endregion

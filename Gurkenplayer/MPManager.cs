@@ -12,18 +12,18 @@ namespace Gurkenplayer
     /// </summary>
     public class MPManager
     {
-        //Fields
+        // Fields
         static MPManager instance;
         bool isProcessMessageThreadRunning = false;
         MPRoleType mpRole = MPRoleType.None;
         MPClient mpClient;
         MPServer mpServer;
-        //The message processing thread can be stopped by setting StopProcessMessageThread in MPManager
-        //or even in MPClient/Server to true. They share this condition.
-        //StopProcessMessageThread is also used by other threads like in the EcoExtBase class.
+        // The message processing thread can be stopped by setting StopProcessMessageThread in MPManager
+        // or even in MPClient/Server to true. They share this condition.
+        // StopProcessMessageThread is also used by other threads like in the EcoExtBase class.
         static MPSharedCondition stopProcessMessageThread = new MPSharedCondition(false);
 
-        //Properties
+        // Properties
         /// <summary>
         /// Indicates the current status of te ProcessMessageThread.
         /// </summary>
@@ -91,7 +91,7 @@ namespace Gurkenplayer
                 }
                 else if (value == MPRoleType.Resetting)
                 {
-                    //Use MPRoleType.Resetting or the provided methods to reset the instances.
+                    // Use MPRoleType.Resetting or the provided methods to reset the instances.
                     if (mpRole == MPRoleType.Server)
                     {
                         ServerStop();
@@ -103,8 +103,8 @@ namespace Gurkenplayer
                         ClientUninitialize();
                     }
 
-                    //MPRole should be set to None in the xUninitialize() methods.
-                    //And if not:
+                    // MPRole should be set to None in the xUninitialize() methods.
+                    // And if not:
                     if (mpRole != MPRoleType.None)
                         mpRole = MPRoleType.None;
                 }

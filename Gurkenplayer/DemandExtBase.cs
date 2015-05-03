@@ -40,9 +40,9 @@ namespace Gurkenplayer
         /// <returns>Modified demand.</returns>
         public override int OnCalculateCommercialDemand(int originalDemand)
         {
-            if (MPManager.Instance.MPRole == MPRoleType.Server) //Update all
-            {
-                MPCommercialDemand = originalDemand;
+            if (MPManager.Instance.MPRole == MPRoleType.Server) // Update all clients
+            {   // Only the server should send the demand information? Test
+                MPCommercialDemand = base.OnCalculateWorkplaceDemand(originalDemand);
                 MPManager.Instance.MPServer.SendDemandInformationUpdateToAll();
                 return MPCommercialDemand;
             }
@@ -63,7 +63,7 @@ namespace Gurkenplayer
         {
             if (MPManager.Instance.MPRole == MPRoleType.Server)
             {
-                MPResidentalDemand = originalDemand;
+                MPResidentalDemand = base.OnCalculateWorkplaceDemand(originalDemand);
                 return MPResidentalDemand;
             }
             else if (MPManager.Instance.MPRole == MPRoleType.Client)
@@ -82,7 +82,7 @@ namespace Gurkenplayer
         {
             if (MPManager.Instance.MPRole == MPRoleType.Server)
             {
-                MPWorkplaceDemand = originalDemand;
+                MPWorkplaceDemand = base.OnCalculateWorkplaceDemand(originalDemand);
                 return MPWorkplaceDemand;
             }
             else if (MPManager.Instance.MPRole == MPRoleType.Client)

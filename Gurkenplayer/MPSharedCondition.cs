@@ -13,11 +13,11 @@ namespace Gurkenplayer
     /// </summary>
     public class MPSharedCondition
     {
-        //Fields
+        // Fields
         public event ConditionChangingEventHandler conditionChangingEvent;
         private bool condition;
 
-        //Properties
+        // Properties
         public bool Condition
         {
             get { return condition; }
@@ -28,13 +28,13 @@ namespace Gurkenplayer
             }
         }
 
-        //Constructor
+        // Constructor
         public MPSharedCondition(bool condition)
         {
             this.condition = condition;
         }
 
-        //Methods
+        // Methods
         public virtual void OnConditionChanging(ConditionChangedEventArgs e)
         {
             if (conditionChangingEvent != null)
@@ -47,16 +47,16 @@ namespace Gurkenplayer
     /// </summary>
     public class ConditionChangedEventArgs : EventArgs
     {
-        //Fields
+        // Fields
         private bool newCondition;
 
-        //Properties
+        // Properties
         public bool NewCondition
         {
             get { return newCondition; }
         }
 
-        //Constructor
+        // Constructor
         public ConditionChangedEventArgs(bool newCondition)
         {
             this.newCondition = newCondition;

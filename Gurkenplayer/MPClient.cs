@@ -9,6 +9,7 @@ using System.Threading;
 using ICities;
 using UnityEngine;
 using ColossalFramework;
+using ColossalFramework.Plugins;
 
 namespace Gurkenplayer
 {
@@ -210,9 +211,10 @@ namespace Gurkenplayer
             ServerPassword = password;
 
             //Write approval message with password
-            NetOutgoingMessage approvalMessage = netClient.CreateMessage();  //Approval message with password
+            NetOutgoingMessage approvalMessage = netClient.CreateMessage();
             approvalMessage.Write(ServerPassword);
             approvalMessage.Write(Username);
+            approvalMessage.Write(PluginManager.instance.enabledModCount);
             netClient.Start();
             Log.Message("Client started. Trying to connect.");
             netClient.Connect(ServerIP, ServerPort, approvalMessage);
@@ -289,7 +291,8 @@ namespace Gurkenplayer
             config = new NetPeerConfiguration(appIdentifier);
             config.MaximumHandshakeAttempts = 1;
             config.ResendHandshakeInterval = 1;
-            config.AutoFlushSendQueue = false; //netClient.SendMessage(message, NetDeliveryMethod); is needed for sending
+            config.AutoFlushSendQueue = false; 
+            // netClient.SendMessage(message, NetDeliveryMethod); is needed for sending
         }
 
         /// <summary>
@@ -308,15 +311,11 @@ namespace Gurkenplayer
                 StopMessageProcessingThread.Condition = false;
                 while (!MPManager.StopProcessMessageThread.Condition)
                 {
-                    //Stop the thread if the MPRoleType is not Client or the bool StopMessageProcessingThread is true (default: false).
-                    //if (MPManager.StopProcessMessageThread.Condition)
-                    //    break;
-
                     while ((msg = client.ReadMessage()) != null)
                     {
                         switch (msg.MessageType)
                         {
-                            //Zum debuggen
+                            // Debug
                             #region NetIncomingMessageType Debug
                             case NetIncomingMessageType.VerboseDebugMessage: //Debug
                             case NetIncomingMessageType.DebugMessage: //Debug
@@ -326,6 +325,7 @@ namespace Gurkenplayer
                                 break;
                             #endregion
 
+                            // StatusChanged -> Client connected or disconnected
                             #region NetIncomingMessageType.StatusChanged
                             case NetIncomingMessageType.StatusChanged:
                                 NetConnectionStatus state = (NetConnectionStatus)msg.ReadByte();
@@ -346,6 +346,7 @@ namespace Gurkenplayer
                                 break;
                             #endregion
 
+                            // Client received data to synchronize
                             #region NetIncomingMessageType.Data
                             case NetIncomingMessageType.Data:
                                 int type = msg.ReadInt32();
@@ -353,6 +354,7 @@ namespace Gurkenplayer
                                 break;
                             #endregion
 
+                            // Not important for the MPClient
                             #region NetIncomingMessageType.ConnectionApproval
                             case NetIncomingMessageType.ConnectionApproval:
                                 break;
@@ -390,18 +392,18 @@ namespace Gurkenplayer
         {
             switch (msgType)
             {
-                case MPMessageType.MoneyUpdate: //Receiving money
+                case MPMessageType.MoneyUpdate: // Receiving money
                     Log.Message("Client received " + msgType);
                     long t = msg.ReadInt64();
                     EcoExtBase.MPInternalMoneyAmount = t;
                     break;
-                case MPMessageType.DemandUpdate: //Receiving demand
+                case MPMessageType.DemandUpdate: // Receiving demand
                     Log.Message("Client received " + msgType);
                     DemandExtBase.MPCommercialDemand = msg.ReadInt32();
                     DemandExtBase.MPResidentalDemand = msg.ReadInt32();
                     DemandExtBase.MPWorkplaceDemand = msg.ReadInt32();
                     break;
-                case MPMessageType.TileUpdate:
+                case MPMessageType.TileUpdate: // Receiving tile coordinates to unlock
                     Log.Message("Client received " + msgType);
                     AreaExtBase.MPXCoordinate = msg.ReadInt32();
                     AreaExtBase.MPZCoordinate = msg.ReadInt32();
@@ -409,12 +411,12 @@ namespace Gurkenplayer
                     //EcoExtBase.OnUpdateMoneyAmount(long internalMoneyAmount).
                     //Maybe I find a direct way to unlock a tile within AreaExtBase
                     break;
-                case MPMessageType.SimulationUpdate:
+                case MPMessageType.SimulationUpdate: // Receiving update on simulation information
                     Log.Message("Client received " + msgType);
                     SimulationManager.instance.SelectedSimulationSpeed = msg.ReadInt32();
                     SimulationManager.instance.SimulationPaused = msg.ReadBoolean();
                     break;
-                default: //Unbehandelte ID
+                default: //Unhandled ID (MPMessageType)
                     Log.Warning(String.Format("Client ProgressData: Unhandled ID/type: {0}/{1} ", (int)msgType, msgType));
                     break;
             }
