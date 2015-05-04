@@ -71,8 +71,8 @@ namespace Gurkenplayer
                     FirstRun = false;
                 }
                 //MPInternalMoneyAmount = internalMoneyAmount; // Not important atm
-                MPInternalMoneyAmount = MPInternalMoneyAmount - MPCashChangeAmount;
-
+                // Multiplayer Bank Acc.                        Building/Maintenance costs                  the balance in the UI
+                MPInternalMoneyAmount = (MPInternalMoneyAmount - MPCashChangeAmount) + EconomyManager.instance.LastCashDelta;
                 EcoExtBase.MPCashChangeAmount = 0; // Reset the MPCashChangeAmount after updating the MPInternalMoneyAmount
                 return MPInternalMoneyAmount; // If user is not netServer or netClient, he should not be connected. Return original value
             }

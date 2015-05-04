@@ -46,11 +46,14 @@ namespace Gurkenplayer
 
                 if (Input.GetKeyDown(KeyCode.C))
                 {
-                    UIComponent cpanel = (UIComponent)UIView.Find(searchName: "MPConfigurationPanel", type: typeof(UIPanel));
-                    if (cpanel.isVisible)
-                        cpanel.isVisible = false;
-                    else
-                        cpanel.isVisible = true;
+                    UIComponent cpanel = GameObject.Find("MPConfigurationPanel").GetComponent<UIComponent>();
+                    if (cpanel != null)
+                    {
+                        if (cpanel.isVisible)
+                            cpanel.isVisible = false;
+                        else
+                            cpanel.isVisible = true;
+                    }
                 }
 
                 if (Input.GetKeyDown(KeyCode.S))

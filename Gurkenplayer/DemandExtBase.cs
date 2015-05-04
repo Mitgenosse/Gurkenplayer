@@ -11,9 +11,9 @@ namespace Gurkenplayer
     public class DemandExtBase : DemandExtensionBase
     {
         //Fields
-        static int mpCommercialDemand; //Multiplayer commercial demand
-        static int mpResidentalDemand; //MP residental demand
-        static int mpWorkPlaceDemand; //MP workplace demand
+        static int mpResidentalDemand = 100; //MP residental demand
+        static int mpCommercialDemand = 0; //Multiplayer commercial demand
+        static int mpWorkPlaceDemand = 0; //MP workplace demand
 
         //Properties
         public static int MPCommercialDemand
@@ -51,7 +51,7 @@ namespace Gurkenplayer
                 //MPManager.Instance.MPClient.SendDemandInformationUpdateToServer();
                 return MPCommercialDemand;
             }
-            return originalDemand;
+            return MPCommercialDemand;
         }
 
         /// <summary>
@@ -70,7 +70,7 @@ namespace Gurkenplayer
             {
                 return MPResidentalDemand;
             }
-            return originalDemand;
+            return MPResidentalDemand;
         }
 
         /// <summary>
@@ -89,7 +89,7 @@ namespace Gurkenplayer
             {
                 return MPWorkplaceDemand;
             }
-            return originalDemand;
+            return MPWorkplaceDemand;
         }
     }
 }

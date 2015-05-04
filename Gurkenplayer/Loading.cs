@@ -42,7 +42,6 @@ namespace Gurkenplayer
             try
             {
                 UIView v = UIView.GetAView();
-
                 uiComponent = (UIComponent)v.AddUIComponent(typeof(ConfigurationPanel));
             }
             catch (Exception ex)
