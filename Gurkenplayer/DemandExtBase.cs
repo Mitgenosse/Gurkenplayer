@@ -44,11 +44,12 @@ namespace Gurkenplayer
             {   // Only the server should send the demand information? Test
                 MPCommercialDemand = base.OnCalculateWorkplaceDemand(originalDemand);
                 MPManager.Instance.MPServer.SendDemandInformationUpdateToAll();
+                MPManager.Instance.MPServer.SendCitizenInformationUpdateToAll();
                 return MPCommercialDemand;
             }
             else if (MPManager.Instance.MPRole == MPRoleType.Client)
             {
-                //MPManager.Instance.MPClient.SendDemandInformationUpdateToServer();
+                // MPManager.Instance.MPClient.SendDemandInformationUpdateToServer();
                 return MPCommercialDemand;
             }
             return MPCommercialDemand;

@@ -222,7 +222,7 @@ namespace Gurkenplayer
         /// </summary>
         public void Stop()
         {
-            //If netServer is not started, return
+            // If netServer is not started, return
             if (!IsServerStarted) 
                 return;
 
@@ -414,32 +414,33 @@ namespace Gurkenplayer
         /// <param name="msg">Received message.</param>
         private void ProgressData(MPMessageType msgType, NetIncomingMessage msg)
         {
+            Log.Message("Server received " + msgType);
             switch (msgType)
             {
-                case MPMessageType.MoneyUpdate: //Receiving money
+                case MPMessageType.MoneyUpdate: // Receiving money
                     EcoExtBase.MPCashChangeAmount += msg.ReadInt64();
-                    //EcoExtBase.MPInternalMoneyAmount -= EcoExtBase.MPCashChangeAmount;
-                    //EcoExtBase._CurrentMoneyAmount = msg.ReadInt64();
-                    //EcoExtBase._InternalMoneyAmount = msg.ReadInt64();
+                    // EcoExtBase.MPInternalMoneyAmount -= EcoExtBase.MPCashChangeAmount;
+                    // EcoExtBase._CurrentMoneyAmount = msg.ReadInt64();
+                    // EcoExtBase._InternalMoneyAmount = msg.ReadInt64();
                     break;
-                case MPMessageType.DemandUpdate: //Receiving demand
-                    Log.Message("Server received " + msgType);
+                case MPMessageType.DemandUpdate: // Receiving demand
                     DemandExtBase.MPCommercialDemand = msg.ReadInt32();
                     DemandExtBase.MPResidentalDemand = msg.ReadInt32();
                     DemandExtBase.MPWorkplaceDemand = msg.ReadInt32();
                     break;
                 case MPMessageType.TileUpdate:
-                    Log.Message("Server received " + msgType);
                     AreaExtBase.MPXCoordinate = msg.ReadInt32();
                     AreaExtBase.MPZCoordinate = msg.ReadInt32();
-                    //INFO: The unlock process is activated once every 4 seconds simutaniously with the
-                    //EcoExtBase.OnUpdateMoneyAmount(long internalMoneyAmount).
-                    //Maybe I find a direct way to unlock a tile within AreaExtBase
+                    // INFO: The unlock process is activated once every 4 seconds simutaniously with the
+                    // EcoExtBase.OnUpdateMoneyAmount(long internalMoneyAmount).
+                    // Maybe I find a direct way to unlock a tile within AreaExtBase
                     break;
-                case MPMessageType.SimulationUpdate:
-                    Log.Message("Server received " + msgType);
+                case MPMessageType.SimulationUpdate: // Receiving simulation time Update
                     SimulationManager.instance.SelectedSimulationSpeed = msg.ReadInt32();
                     SimulationManager.instance.SimulationPaused = msg.ReadBoolean();
+                    break;
+                case MPMessageType.CitizenUpdate: // Receiving citizen information
+                    CitizenManager.instance.m_citizenCount = msg.ReadInt32();
                     break;
                 default:
                     Log.Warning(String.Format("Server ProgressData: Unhandled ID/type: {0}/{1} ", (int)msgType, msgType));
@@ -508,6 +509,21 @@ namespace Gurkenplayer
                 msg.Write((int)MPMessageType.SimulationUpdate);
                 msg.Write(SimulationManager.instance.SelectedSimulationSpeed);
                 msg.Write(SimulationManager.instance.SimulationPaused);
+                netServer.SendToAll(msg, NetDeliveryMethod.ReliableOrdered);
+                netServer.FlushSendQueue();
+            }
+        }
+
+        /// <summary>
+        /// Sends information about the current citizen count to all clients.
+        /// </summary>
+        public void SendCitizenInformationUpdateToAll()
+        {
+            if (CanSendMessage)
+            {
+                NetOutgoingMessage msg = netServer.CreateMessage();
+                msg.Write((int)MPMessageType.CitizenUpdate);
+                msg.Write(CitizenManager.instance.m_citizenCount);
                 netServer.SendToAll(msg, NetDeliveryMethod.ReliableOrdered);
                 netServer.FlushSendQueue();
             }

@@ -10,6 +10,66 @@ namespace Gurkenplayer
     public static class RoadBuildTest
     {
         //Test
+        public static void CloneNode(NetNode node)
+        {
+            Log.Message("BuildRoad enter");
+            int maxSegments = 100;
+            bool test = false;
+            bool visualize = false;
+            bool autoFix = true;
+            bool needMoney = false;
+            bool invert = false;
+            bool switchDir = false;
+            ushort relocateBuildingID = 0;
+            ushort firstNode;
+            ushort lastNode;
+            ushort startNode;
+            ushort endNode;
+            ushort segment;
+            int cost;
+            int productionRate;
+            Log.Message("BuildRoad fields inied");
+            NetTool tool = new NetTool();
+
+            NetInfo netInfo = node.Info;
+            float startHeight = NetSegment.SampleTerrainHeight(netInfo, node.m_position, false);
+            float endHeight = NetSegment.SampleTerrainHeight(netInfo, node.m_position, false);
+            Log.Message("BuildRoad netinfo");
+            NetTool.ControlPoint startControlPt = new NetTool.ControlPoint();
+            NetTool.ControlPoint endControlPt = new NetTool.ControlPoint();
+            Log.Message("BuildRoad netcontrol set");
+            node.m_position.y = startHeight;
+            startControlPt.m_position = node.m_position;
+            node.m_position.y = endHeight;
+            endControlPt.m_position = node.m_position;
+            Log.Message("BuildRoad creating node 1");
+
+            NetTool.CreateNode(netInfo, startControlPt, startControlPt, startControlPt, NetTool.m_nodePositionsSimulation,
+                0, false, false, false, false, false, false, (ushort)0, out startNode, out segment, out cost, out productionRate);
+
+            // CreateNode(out startNode, ref rand, netInfo, new Vector2(startVector.x, startVector.z) , NetSegment.SampleTerrainHeight(netInfo, startVector, false));
+            Log.Message("BuildRoad creating node 2");
+
+            NetTool.CreateNode(netInfo, endControlPt, endControlPt, endControlPt, NetTool.m_nodePositionsSimulation,
+                0, false, false, false, false, false, false, (ushort)0, out endNode, out segment, out cost, out productionRate);
+
+            // CreateNode(out endNode, ref rand, netInfo, new Vector2(endVector.x, endVector.z), NetSegment.SampleTerrainHeight(netInfo, startVector, false));
+
+            // Array16<NetNode> abc = NetManager.instance.m_nodes; Test
+
+            startControlPt.m_node = startNode;
+            endControlPt.m_node = endNode;
+            Log.Message("BuildRoad midcontrpt setting");
+
+            NetTool.ControlPoint midControlPt = endControlPt;
+            midControlPt.m_position = (startControlPt.m_position + endControlPt.m_position) * 0.5f;
+            midControlPt.m_direction = VectorUtils.NormalizeXZ(midControlPt.m_position - startControlPt.m_position);
+            endControlPt.m_direction = VectorUtils.NormalizeXZ(endControlPt.m_position - midControlPt.m_position);
+            NetTool.CreateNode(netInfo, startControlPt, midControlPt, endControlPt, NetTool.m_nodePositionsSimulation,
+                 maxSegments, test, visualize, autoFix, needMoney, invert, switchDir, relocateBuildingID, out firstNode,
+                 out lastNode, out segment, out cost, out productionRate);
+            Log.Message("BuildRoad road set");
+        }
         public static void BuildRoad(Vector3 startVector, Vector3 endVector, uint prefabNumber)
         {
             Log.Message("BuildRoad enter");

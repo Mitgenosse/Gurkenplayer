@@ -16,7 +16,7 @@ namespace Gurkenplayer
     public delegate void ClientEventHandler(object sender, EventArgs e);
     public class MPClient : IDisposable
     {
-        //Event stuff
+        // Event stuff
         #region Events and Eventmethods
         public event ClientEventHandler clientConnectedEvent;
         public event ClientEventHandler clientDisconnectedEvent;
@@ -52,7 +52,7 @@ namespace Gurkenplayer
         }
         #endregion
 
-        //Fields
+        // Fields
         #region Fields
         NetPeerConfiguration config;
         NetClient netClient;
@@ -68,7 +68,7 @@ namespace Gurkenplayer
         Thread messageProcessingThread;
         #endregion
 
-        //Properties
+        // Properties
         #region props
         /// <summary>
         /// Returns the IP-Address of the netServer.
@@ -155,7 +155,7 @@ namespace Gurkenplayer
         }
         #endregion
 
-        //Constructor
+        // Constructor
         /// <summary>
         /// MPClient constructor.
         /// </summary>
@@ -186,7 +186,7 @@ namespace Gurkenplayer
             Dispose();
         }
 
-        //Methods
+        // Methods
         /// <summary>
         /// Method with optional parameters which is used to connect to an existing netServer.
         /// Empty arguments take the default value.
@@ -199,18 +199,18 @@ namespace Gurkenplayer
             Log.Message("Client connecting to server. if(IsClientConnected) -> Disconnect...(): " + IsClientConnected + ". IsClientConnected: " + IsClientConnected + " Current MPRole: " + MPManager.Instance.MPRole);
             DisconnectFromServer();
 
-            //Throw Exception when ip is not valid
+            // Throw Exception when ip is not valid
             if (ip != "localhost" && ip.Split('.').Length != 4)
                 throw new MPException("Invalid server ip address. Check it please.");
 
             Log.Warning(String.Format("Client trying to connect to ip:{0} port:{1} password:{2} maxretry:{3} retryinterval:{4} MPRole:{5}", ip, port, password, netClient.Configuration.MaximumHandshakeAttempts, netClient.Configuration.ResendHandshakeInterval, MPManager.Instance.MPRole));
 
-            //Manipulating fields
+            // Manipulating fields
             ServerIP = ip;
             ServerPort = port;
             ServerPassword = password;
 
-            //Write approval message with password
+            // Write approval message with password
             NetOutgoingMessage approvalMessage = netClient.CreateMessage();
             approvalMessage.Write(ServerPassword);
             approvalMessage.Write(Username);
@@ -223,7 +223,7 @@ namespace Gurkenplayer
             IsClientConnected = true;
             StopMessageProcessingThread.Condition = false;
 
-            //Separate thread in which the received messages are handled
+            // Separate thread in which the received messages are handled
             messageProcessingThread = new Thread(pts);
             messageProcessingThread.Start(netClient);
 
@@ -236,7 +236,7 @@ namespace Gurkenplayer
         public void DisconnectFromServer()
         {
             if (!IsClientConnected)
-                return; //If netClient is not  connected, return
+                return; // If netClient is not  connected, return
 
             Log.Message("Disconnecting from the server. Current MPRole: " + MPManager.Instance.MPRole);
 
@@ -250,7 +250,7 @@ namespace Gurkenplayer
             }
             finally
             {
-                //Reconfiguration
+                // Reconfiguration
                 ResetConfig();
                 netClient = new NetClient(config);
 
@@ -291,8 +291,8 @@ namespace Gurkenplayer
             config = new NetPeerConfiguration(appIdentifier);
             config.MaximumHandshakeAttempts = 1;
             config.ResendHandshakeInterval = 1;
-            config.AutoFlushSendQueue = false; 
-            // netClient.SendMessage(message, NetDeliveryMethod); is needed for sending
+            config.AutoFlushSendQueue = false;
+            // netClient.FlushSendQueue(); is needed for sending
         }
 
         /// <summary>
@@ -390,33 +390,33 @@ namespace Gurkenplayer
         /// <param name="msg">The message to process.</param>
         private void ProgressData(MPMessageType msgType, NetIncomingMessage msg)
         {
+            Log.Message("Client received " + msgType);
             switch (msgType)
             {
                 case MPMessageType.MoneyUpdate: // Receiving money
-                    Log.Message("Client received " + msgType);
                     long t = msg.ReadInt64();
                     EcoExtBase.MPInternalMoneyAmount = t;
                     break;
                 case MPMessageType.DemandUpdate: // Receiving demand
-                    Log.Message("Client received " + msgType);
                     DemandExtBase.MPCommercialDemand = msg.ReadInt32();
                     DemandExtBase.MPResidentalDemand = msg.ReadInt32();
                     DemandExtBase.MPWorkplaceDemand = msg.ReadInt32();
                     break;
                 case MPMessageType.TileUpdate: // Receiving tile coordinates to unlock
-                    Log.Message("Client received " + msgType);
                     AreaExtBase.MPXCoordinate = msg.ReadInt32();
                     AreaExtBase.MPZCoordinate = msg.ReadInt32();
-                    //INFO: The unlock process is activated simutaniously with the
-                    //EcoExtBase.OnUpdateMoneyAmount(long internalMoneyAmount).
-                    //Maybe I find a direct way to unlock a tile within AreaExtBase
+                    // INFO: The unlock process is activated simutaniously with the
+                    // EcoExtBase.OnUpdateMoneyAmount(long internalMoneyAmount).
+                    // Maybe I find a direct way to unlock a tile within AreaExtBase
                     break;
                 case MPMessageType.SimulationUpdate: // Receiving update on simulation information
-                    Log.Message("Client received " + msgType);
                     SimulationManager.instance.SelectedSimulationSpeed = msg.ReadInt32();
                     SimulationManager.instance.SimulationPaused = msg.ReadBoolean();
                     break;
-                default: //Unhandled ID (MPMessageType)
+                case MPMessageType.CitizenUpdate:
+                    CitizenManager.instance.m_citizenCount = msg.ReadInt32();
+                    break;
+                default: // Unhandled ID (MPMessageType)
                     Log.Warning(String.Format("Client ProgressData: Unhandled ID/type: {0}/{1} ", (int)msgType, msgType));
                     break;
             }
@@ -484,6 +484,21 @@ namespace Gurkenplayer
                 msg.Write((int)MPMessageType.SimulationUpdate);
                 msg.Write(SimulationManager.instance.SelectedSimulationSpeed);
                 msg.Write(SimulationManager.instance.SimulationPaused);
+                netClient.SendMessage(msg, NetDeliveryMethod.ReliableOrdered);
+                netClient.FlushSendQueue();
+            }
+        }
+
+        /// <summary>
+        /// Sends a message to the server containing the current citizen information.
+        /// </summary>
+        public void SendCitizenInformationUpdateToServer()
+        {
+            if (CanSendMessage)
+            {
+                NetOutgoingMessage msg = netClient.CreateMessage();
+                msg.Write((int)MPMessageType.CitizenUpdate);
+                msg.Write(CitizenManager.instance.m_citizenCount);
                 netClient.SendMessage(msg, NetDeliveryMethod.ReliableOrdered);
                 netClient.FlushSendQueue();
             }
