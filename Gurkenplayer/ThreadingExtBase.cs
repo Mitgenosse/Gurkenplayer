@@ -1,5 +1,6 @@
 ﻿using ColossalFramework.UI;
 using ICities;
+using SkylinesOverwatch;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,6 +15,7 @@ namespace Gurkenplayer
         // Fields
         bool mpLastSimulationPausedState = false;
         int mpLastSelectedSimulationSpeedState = 0;
+        private static Dictionary<ushort, ushort> mpBuildingDictionary = new Dictionary<ushort,ushort>(); // Shall contain building id of server and client buildings
 
         // Properties
         public bool MPLastSimulationPausedState
@@ -25,6 +27,11 @@ namespace Gurkenplayer
         {
             get { return mpLastSelectedSimulationSpeedState; }
             set { mpLastSelectedSimulationSpeedState = value; }
+        }
+        public static Dictionary<ushort, ushort> MPBuildingDictionary
+        {
+            get { return ThreadingExtBase.mpBuildingDictionary; }
+            set { ThreadingExtBase.mpBuildingDictionary = value; }
         }
 
         System.Random rdm = new System.Random((int)1125463589);
@@ -47,6 +54,8 @@ namespace Gurkenplayer
                 if (Input.GetKeyDown(KeyCode.C))
                 {
                     UIComponent cpanel = GameObject.Find("MPConfigurationPanel").GetComponent<UIComponent>();
+                    Log.Message((cpanel != null) ? "C is pressed. cpanel is not null" : "C is pressed. cpanel is null");
+                    
                     if (cpanel != null)
                     {
                         if (cpanel.isVisible)
@@ -79,7 +88,7 @@ namespace Gurkenplayer
                     Vector3 endPos = new Vector3(rdm.Next(1000), 0, rdm.Next(1000));
                     try
                     {
-                        RoadBuildTest.BuildRoad(startPos, endPos, 38);
+                        RoadSyncHelper.BuildRoad(startPos, endPos, 38);
                     }
                     catch (Exception ex)
                     {
@@ -88,6 +97,12 @@ namespace Gurkenplayer
                 }
             }
             SimulationManager.instance.ForcedSimulationPaused = (MPGlobalValues.IsConfigurationFinished) ? false : true;
+        }
+
+        public override void OnBeforeSimulationTick()
+        {
+            
+
         }
 
         /// <summary>

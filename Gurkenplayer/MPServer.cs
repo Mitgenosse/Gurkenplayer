@@ -528,5 +528,33 @@ namespace Gurkenplayer
                 netServer.FlushSendQueue();
             }
         }
+
+        public void SendBuildingRemovalInformationUpdateToAll()
+        {
+            if (CanSendMessage)
+            {
+                NetOutgoingMessage msg = netServer.CreateMessage();
+                msg.Write((int)MPMessageType.BuildingRemovalUpdate);
+                //Go on. Need to convert Data.Instance.BuildingsRemoved to byte[]
+            }
+        }
+
+        public byte[] ConvertToByteArray(ushort[] shortArr)
+        {
+            bool isLittleEndian = true;
+            byte[] data = new byte[shortArr.Length * 8];
+            int offset = 0;
+            foreach (ushort value in shortArr)
+            {
+                byte[] buffer = BitConverter.GetBytes(value);
+                if (BitConverter.IsLittleEndian != isLittleEndian)
+                {
+                    Array.Reverse(buffer);
+                }
+                buffer.CopyTo(data, offset);
+                offset += 8;
+            }
+            return data;
+        }
     }
 }

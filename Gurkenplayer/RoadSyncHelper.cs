@@ -1,4 +1,5 @@
 ﻿using ColossalFramework.Math;
+using SkylinesOverwatch;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,9 +8,25 @@ using UnityEngine;
 
 namespace Gurkenplayer
 {
-    public static class RoadBuildTest
+    public static class RoadSyncHelper
     {
         //Test
+        public static void He()
+        {
+            Building b = BuildingManager.instance.m_buildings.m_buffer[4];
+
+        }
+        public static void UpdateBuildings(ushort[] newBuildingIDS, Building[] newBuildings)
+        {
+            for (int i = 0; i < newBuildingIDS.Length; i++)
+            {
+                CreateBuilding(newBuildingIDS[i], newBuildings[i]);
+            }
+        }
+        public static void CreateBuilding(ushort id, Building building)
+        {
+            BuildingManager.instance.CreateBuilding(out id, ref SimulationManager.instance.m_randomizer, building.Info, building.m_position, building.m_angle, building.Length, building.m_buildIndex);
+        }
         public static void CloneNode(NetNode node)
         {
             Log.Message("BuildRoad enter");
@@ -72,7 +89,6 @@ namespace Gurkenplayer
         }
         public static void BuildRoad(Vector3 startVector, Vector3 endVector, uint prefabNumber)
         {
-            Log.Message("BuildRoad enter");
             int maxSegments = 100;
             bool test = false;
             bool visualize = false;
@@ -88,39 +104,27 @@ namespace Gurkenplayer
             ushort segment;
             int cost;
             int productionRate;
-            Log.Message("BuildRoad fields inied");
             NetTool tool = new NetTool();
 
             NetInfo netInfo = PrefabCollection<NetInfo>.GetPrefab(prefabNumber);
             float startHeight = NetSegment.SampleTerrainHeight(netInfo, startVector, false);
             float endHeight = NetSegment.SampleTerrainHeight(netInfo, endVector, false);
-            Log.Message("BuildRoad netinfo");
             NetTool.ControlPoint startControlPt = new NetTool.ControlPoint();
             NetTool.ControlPoint endControlPt = new NetTool.ControlPoint();
-            Log.Message("BuildRoad netcontrol set");
             startVector.y = startHeight;
             startControlPt.m_position = startVector;
             endVector.y = endHeight;
             endControlPt.m_position = endVector;
-            Log.Message("BuildRoad creating node 1");
 
             NetTool.CreateNode(netInfo, startControlPt, startControlPt, startControlPt, NetTool.m_nodePositionsSimulation,
                 0, false, false, false, false, false, false, (ushort)0, out startNode, out segment, out cost, out productionRate);
 
-            // CreateNode(out startNode, ref rand, netInfo, new Vector2(startVector.x, startVector.z) , NetSegment.SampleTerrainHeight(netInfo, startVector, false));
-            Log.Message("BuildRoad creating node 2");
 
             NetTool.CreateNode(netInfo, endControlPt, endControlPt, endControlPt, NetTool.m_nodePositionsSimulation,
                 0, false, false, false, false, false, false, (ushort)0, out endNode, out segment, out cost, out productionRate);
 
-            // CreateNode(out endNode, ref rand, netInfo, new Vector2(endVector.x, endVector.z), NetSegment.SampleTerrainHeight(netInfo, startVector, false));
-
-            // Array16<NetNode> abc = NetManager.instance.m_nodes; Test
-
             startControlPt.m_node = startNode;
             endControlPt.m_node = endNode;
-            Log.Message("BuildRoad midcontrpt setting");
-
             NetTool.ControlPoint midControlPt = endControlPt;
             midControlPt.m_position = (startControlPt.m_position + endControlPt.m_position) * 0.5f;
             midControlPt.m_direction = VectorUtils.NormalizeXZ(midControlPt.m_position - startControlPt.m_position);
@@ -128,7 +132,6 @@ namespace Gurkenplayer
             NetTool.CreateNode(netInfo, startControlPt, midControlPt, endControlPt, NetTool.m_nodePositionsSimulation,
                  maxSegments, test, visualize, autoFix, needMoney, invert, switchDir, relocateBuildingID, out firstNode,
                  out lastNode, out segment, out cost, out productionRate);
-            Log.Message("BuildRoad road set");
 
         }
 
