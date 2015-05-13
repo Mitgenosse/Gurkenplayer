@@ -16,7 +16,7 @@ namespace Gurkenplayer
         bool mpLastSimulationPausedState = false;
         int mpLastSelectedSimulationSpeedState = 0;
         private static Dictionary<ushort, ushort> mpBuildingDictionary = new Dictionary<ushort,ushort>(); // Shall contain building id of server and client buildings
-
+        
         // Properties
         public bool MPLastSimulationPausedState
         {
@@ -99,10 +99,14 @@ namespace Gurkenplayer
             SimulationManager.instance.ForcedSimulationPaused = (MPGlobalValues.IsConfigurationFinished) ? false : true;
         }
 
+        ushort[] buildingsAdded;
         public override void OnBeforeSimulationTick()
         {
-            
-
+            buildingsAdded = Data.Instance.BuildingsAdded;
+            if (buildingsAdded.Length > 0)
+            {
+                
+            }
         }
 
         /// <summary>

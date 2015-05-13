@@ -14,12 +14,13 @@ using ColossalFramework.Plugins;
 namespace Gurkenplayer
 {
     public delegate void ClientEventHandler(object sender, EventArgs e);
+    public delegate void ClientReceivedMessageEventHandler(object sender, ReceivedMessageEventArgs e);
     public class MPClient : IDisposable
     {
         // Event stuff
         #region Events and Eventmethods
-        public event ClientEventHandler clientConnectedEvent;
-        public event ClientEventHandler clientDisconnectedEvent;
+        public event ClientReceivedMessageEventHandler clientConnectedEvent;
+        public event ClientReceivedMessageEventHandler clientDisconnectedEvent;
         public event ClientEventHandler clientLeftProcessMessageThread;
 
         //EventMethods
@@ -27,7 +28,7 @@ namespace Gurkenplayer
         /// Fires when the client is 100% connected.
         /// </summary>
         /// <param name="e"></param>
-        public virtual void OnClientConnected(EventArgs e)
+        public virtual void OnClientConnected(ReceivedMessageEventArgs e)
         {
             if (clientConnectedEvent != null)
                 clientConnectedEvent(this, e);
@@ -36,7 +37,7 @@ namespace Gurkenplayer
         /// Fires when the client is 100% disconnected.
         /// </summary>
         /// <param name="e"></param>
-        public virtual void OnClientDisconnected(EventArgs e)
+        public virtual void OnClientDisconnected(ReceivedMessageEventArgs e)
         {
             if (clientDisconnectedEvent != null)
                 clientDisconnectedEvent(this, e);
@@ -62,7 +63,7 @@ namespace Gurkenplayer
         string serverPassword = "Password";
         static bool isClientConnected = false;
         bool disposed = false;
-        string username = "usr";
+        string username = "DohnJoe";
         MPSharedCondition stopMessageProcessingThread;
         ParameterizedThreadStart pts;
         Thread messageProcessingThread;
@@ -269,7 +270,6 @@ namespace Gurkenplayer
             {
                 Log.Message("Disposing client. Current MPRole: " + MPManager.Instance.MPRole);
                 DisconnectFromServer();
-                
                 Log.Message("Client disposed. Current MPRole: " + MPManager.Instance.MPRole);
             }
             catch (Exception ex)
@@ -329,19 +329,16 @@ namespace Gurkenplayer
                             #region NetIncomingMessageType.StatusChanged
                             case NetIncomingMessageType.StatusChanged:
                                 NetConnectionStatus state = (NetConnectionStatus)msg.ReadByte();
-                                Log.Warning("ProcessMessage entry state: " + state);
                                 if (state == NetConnectionStatus.Connected)
                                 {
                                     IsClientConnected = true;
-                                    OnClientConnected(EventArgs.Empty);
-                                    Log.Message("You connected. Client IP: " + msg.SenderEndPoint);
+                                    OnClientConnected(new ReceivedMessageEventArgs(msg));
                                 }
                                 else if (state == NetConnectionStatus.Disconnected || state == NetConnectionStatus.Disconnecting || state == NetConnectionStatus.None)
                                 {
                                     IsClientConnected = false;
                                     StopMessageProcessingThread.Condition = true;
-                                    OnClientDisconnected(EventArgs.Empty);
-                                    Log.Message("You disconnected. Client IP: " + msg.SenderEndPoint);
+                                    OnClientDisconnected(new ReceivedMessageEventArgs(msg));
                                 }
                                 break;
                             #endregion

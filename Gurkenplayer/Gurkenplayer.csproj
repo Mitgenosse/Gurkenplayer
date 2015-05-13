@@ -9,7 +9,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Gurkenplayer</RootNamespace>
     <AssemblyName>Gurkenplayer</AssemblyName>
-    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
   </PropertyGroup>
@@ -47,7 +47,8 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\..\..\..\Download\Lindgren-Unity-Port-master\Lindgren-Unity-Port-master\Lidgren.Network\obj\Release\Lidgren.Network.dll</HintPath>
     </Reference>
-    <Reference Include="SkylinesOverwatch">
+    <Reference Include="SkylinesOverwatch, Version=1.0.5608.40794, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
       <HintPath>Managed_dlls\SkylinesOverwatch.dll</HintPath>
     </Reference>
     <Reference Include="System" />
@@ -65,12 +66,15 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AreaExtBase.cs" />
+    <Compile Include="BuildingSyncHelper.cs" />
+    <Compile Include="ConvertionHelper.cs" />
     <Compile Include="MPClient.cs" />
     <Compile Include="ConfigurationPanel.cs" />
     <Compile Include="DemandExtBase.cs" />
     <Compile Include="GurkenplayerMod.cs" />
     <Compile Include="Loading.cs" />
     <Compile Include="Log.cs" />
+    <Compile Include="MPEventArgs.cs" />
     <Compile Include="MPException.cs" />
     <Compile Include="MPGlobalValues.cs" />
     <Compile Include="MPManager.cs" />

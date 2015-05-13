@@ -11,22 +11,7 @@ namespace Gurkenplayer
     public static class RoadSyncHelper
     {
         //Test
-        public static void He()
-        {
-            Building b = BuildingManager.instance.m_buildings.m_buffer[4];
-
-        }
-        public static void UpdateBuildings(ushort[] newBuildingIDS, Building[] newBuildings)
-        {
-            for (int i = 0; i < newBuildingIDS.Length; i++)
-            {
-                CreateBuilding(newBuildingIDS[i], newBuildings[i]);
-            }
-        }
-        public static void CreateBuilding(ushort id, Building building)
-        {
-            BuildingManager.instance.CreateBuilding(out id, ref SimulationManager.instance.m_randomizer, building.Info, building.m_position, building.m_angle, building.Length, building.m_buildIndex);
-        }
+        
         public static void CloneNode(NetNode node)
         {
             Log.Message("BuildRoad enter");

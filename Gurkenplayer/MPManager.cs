@@ -193,21 +193,17 @@ namespace Gurkenplayer
 
             Log.Message("Initialize server.");
             MPServer = new MPServer(StopProcessMessageThread);
-            MPServer.serverLeftProcessingMessageThread += MPServer_serverLeftProcessingMessageThread;
+            MPServer.serverLeftProcessingMessageThreadEvent += MPServer_serverLeftProcessingMessageThreadEvent;
+            MPServer.unhandledMessageReceivedEvent += MPServer_unhandledMessageReceivedEvent;
+            MPServer.clientConnectedEvent += MPServer_clientConnectedEvent;
+            MPServer.clientDisconnectedEvent += MPServer_clientDisconnectedEvent;
+            MPServer.allClientsDissconectedEvent += MPServer_allClientsDissconectedEvent;
+            MPServer.clientConnectionRequestApprovedEvent += MPServer_clientConnectionRequestApprovedEvent;
+            MPServer.clientConnectionRequestDeniedEvent += MPServer_clientConnectionRequestDeniedEvent;
             SetMPRole(MPRoleType.Server);
             Log.Message("Server initialized.");
         }
-        /// <summary>
-        /// Fired when the ProcessMessage thread of the MPSever is left.
-        /// </summary>
-        /// <param name="sender">MPServer instance.</param>
-        /// <param name="e"></param>
-        void MPServer_serverLeftProcessingMessageThread(object sender, EventArgs e)
-        {
-            Log.Message("Left Server message processing thread!");
-            IsProcessMessageThreadRunning = false;
-            ServerUninitialize();
-        }
+
         /// <summary>
         /// Uninitializes the MPServer. Sets it to null.
         /// </summary>
@@ -244,11 +240,9 @@ namespace Gurkenplayer
 
             Log.Message("Resetting server.");
             ServerStop();
-            MPServer = new MPServer(StopProcessMessageThread);
-            SetMPRole(MPRoleType.Server);
+            ServerInitialize();
             Log.Message("Server resetted. New instance created.");
         }
-        
         /// <summary>
         /// Starts the netServer.
         /// </summary>
@@ -269,7 +263,6 @@ namespace Gurkenplayer
             Log.Message("Starting server.");
             MPServer.StartServer();
             SetMPRole(MPRoleType.Server);
-            MPServer.serverLeftProcessingMessageThread += MPServer_serverLeftProcessingMessageThread;
             Log.Message("Server started.");
         }
         /// <summary>
@@ -316,10 +309,81 @@ namespace Gurkenplayer
             MPServer.Stop();
             Log.Message("Server stopped.");
         }
+
+        // Server Events
+        #region Server Events
+        /// <summary>
+        /// Fired when the ProcessMessage thread of the MPSever is left.
+        /// </summary>
+        /// <param name="sender">MPServer instance.</param>
+        /// <param name="e"></param>
+        void MPServer_serverLeftProcessingMessageThreadEvent(object sender, EventArgs e)
+        {
+            Log.Message("Left Server message processing thread!");
+            IsProcessMessageThreadRunning = false;
+            ServerUninitialize();
+        }
+        /// <summary>
+        /// Fires when a unhandled message arrives.
+        /// </summary>
+        /// <param name="sender">MPServer object.</param>
+        /// <param name="e">Information about the unhandled object.</param>
+        void MPServer_unhandledMessageReceivedEvent(object sender, ReceivedUnknownMessageEventArgs e)
+        {
+            Log.Warning(String.Format("Server: Unhandled MessageType/SubType: {0}/{1} ", e.Message.MessageType, e.Type));
+        }
+        /// <summary>
+        /// Fires when a new client connected.
+        /// </summary>
+        /// <param name="sender">Information about the sender object, the MPServer.</param>
+        /// <param name="e">Information about the received message.</param>
+        void MPServer_clientConnectedEvent(object sender, ReceivedMessageEventArgs e)
+        {
+            Log.Message("Client connected. Client IP: " + e.Message.SenderEndPoint);
+            Log.Error("ConnectionsCount new connected:::" + MPServer.ConnectionsCount.ToString());
+        }
+        /// <summary>
+        /// Fires when a client disconnected.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        void MPServer_clientDisconnectedEvent(object sender, ReceivedMessageEventArgs e)
+        {
+            Log.Message("Client disconnected. Client IP: " + e.Message.SenderEndPoint);
+            Log.Error("ConnectionsCount new disconnect:::" + MPServer.ConnectionsCount.ToString());
+        }
+        /// <summary>
+        /// Fires when all clients disconnected from the server.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        void MPServer_allClientsDissconectedEvent(object sender, EventArgs e)
+        {
+            MPGlobalValues.IsConfigurationFinished = false;
+        }
+        /// <summary>
+        /// Fires when a connection request of a client has been accepted.
+        /// </summary>
+        /// <param name="sender">Sender object, MPServer.</param>
+        /// <param name="e">Containing information about the connection request.</param>
+        void MPServer_clientConnectionRequestApprovedEvent(object sender, ConnectionRequestEventArgs e)
+        {
+            Log.Message(String.Format("New client connected. IP:{0} Username:{1}", e.Message.SenderEndPoint, e.Username));
+        }
+        /// <summary>
+        /// Fires when a conenction request of a client has been denied because of various reasons.
+        /// </summary>
+        /// <param name="sender">Sender object, MPServer.</param>
+        /// <param name="e">Containing information about the connection request.</param>
+        void MPServer_clientConnectionRequestDeniedEvent(object sender, ConnectionRequestEventArgs e)
+        {
+            Log.Warning(String.Format("Client connection request denied. IP:{0} Username:{1} Password:{2} Note:{3}", e.Message.SenderEndPoint, e.Username, e.Password, e.Note));
+        }
+        #endregion
         #endregion
 
         //CLIENT//
-        #region client stuff
+        #region netClient stuff
         /// <summary>
         /// Initilializes the Client if it is not already initialized and the MPServer is not initialized.
         /// </summary>
@@ -338,16 +402,11 @@ namespace Gurkenplayer
 
             Log.Message("Initializing client.");
             MPClient = new MPClient(StopProcessMessageThread);
-            SetMPRole(MPRoleType.Client);
             MPClient.clientLeftProcessMessageThread += MPClient_clientLeftProcessMessageThread;
+            MPClient.clientConnectedEvent += MPClient_clientConnectedEvent;
+            MPClient.clientDisconnectedEvent += MPClient_clientDisconnectedEvent;
+            SetMPRole(MPRoleType.Client);
             Log.Message("Client initialized.");
-        }
-
-        void MPClient_clientLeftProcessMessageThread(object sender, EventArgs e)
-        {
-            Log.Message("Left Client message processing thread!");
-            IsProcessMessageThreadRunning = false;
-            ClientUninitialize();
         }
         /// <summary>
         /// Uninitializes the MPClient. Sets it to null.
@@ -385,9 +444,7 @@ namespace Gurkenplayer
 
             Log.Message("Resetting client");
             ClientDisconnect();
-            MPClient = new MPClient(StopProcessMessageThread);
-            SetMPRole(MPRoleType.Client);
-            MPClient.clientLeftProcessMessageThread += MPClient_clientLeftProcessMessageThread;
+            ClientInitialize();
             Log.Message("Client resetted.");
         }
         
@@ -454,6 +511,24 @@ namespace Gurkenplayer
             MPClient.DisconnectFromServer();
             Log.Message("Disconnected from server.");
         }
+
+        // Client Events
+        #region Client Events
+        void MPClient_clientLeftProcessMessageThread(object sender, EventArgs e)
+        {
+            Log.Message("Left Client message processing thread!");
+            IsProcessMessageThreadRunning = false;
+            ClientUninitialize();
+        }
+        void MPClient_clientConnectedEvent(object sender, ReceivedMessageEventArgs e)
+        {
+            Log.Message("You connected. Client IP: " + e.Message.SenderEndPoint);
+        }
+        void MPClient_clientDisconnectedEvent(object sender, ReceivedMessageEventArgs e)
+        {
+            Log.Message("You disconnected. Client IP: " + e.Message.SenderEndPoint);
+        }
+        #endregion
         #endregion
     }
 }

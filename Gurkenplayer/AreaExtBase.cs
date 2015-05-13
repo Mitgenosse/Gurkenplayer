@@ -66,5 +66,4 @@ namespace Gurkenplayer
         //A received tile will be unlocked simutaniously with the EcoExtBase.OnUpdateMoneyAmount(long internalMoneyAmount)
     }
 }
-
 //managers.areas.UnlockArea(x, z, true); or areaManager.UnlockArea(x, z, true);

@@ -18,6 +18,7 @@ namespace Gurkenplayer
         TimeUpdate,
         CitizenUpdate,
         SimulationUpdate,
+        BuildingAddedUpdate,
         BuildingRemovalUpdate,
         BuildingUpdate
     }

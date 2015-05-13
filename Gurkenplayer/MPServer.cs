@@ -11,15 +11,22 @@ using ColossalFramework.Plugins;
 namespace Gurkenplayer
 {
     public delegate void ServerEventHandler(object sender, EventArgs e);
+    public delegate void ServerReceivedMessageEventHandler(object sender, ReceivedMessageEventArgs e);
+    public delegate void ServerReceivedUnhandledMessageEventHandler(object sender, ReceivedUnknownMessageEventArgs e);
+    public delegate void ServerConnectionRequestEventHandler(object sender, ConnectionRequestEventArgs e);
     public class MPServer : IDisposable
     {
         //Event stuff
         #region Events and Eventmethods
         public event ServerEventHandler serverStartedEvent;
         public event ServerEventHandler serverStoppedEvent;
-        public event ServerEventHandler clientConnectedEvent;
-        public event ServerEventHandler clientDisconnectedEvent;
-        public event ServerEventHandler serverLeftProcessingMessageThread;
+        public event ServerReceivedMessageEventHandler clientConnectedEvent;
+        public event ServerReceivedMessageEventHandler clientDisconnectedEvent;
+        public event ServerEventHandler serverLeftProcessingMessageThreadEvent;
+        public event ServerReceivedMessageEventHandler allClientsDissconectedEvent;
+        public event ServerConnectionRequestEventHandler clientConnectionRequestApprovedEvent;
+        public event ServerConnectionRequestEventHandler clientConnectionRequestDeniedEvent;
+        public event ServerReceivedUnhandledMessageEventHandler unhandledMessageReceivedEvent;
 
         /// <summary>
         /// Fires when the netServer is 100% started.
@@ -43,7 +50,7 @@ namespace Gurkenplayer
         /// Fired when a new client connected.
         /// </summary>
         /// <param name="e"></param>
-        public virtual void OnClientConnected(EventArgs e)
+        public virtual void OnClientConnected(ReceivedMessageEventArgs e)
         {
             if (clientConnectedEvent != null)
                 clientConnectedEvent(this, e);
@@ -52,7 +59,7 @@ namespace Gurkenplayer
         /// Fired when a client disconnected.
         /// </summary>
         /// <param name="e"></param>
-        public virtual void OnClientDisconnected(EventArgs e)
+        public virtual void OnClientDisconnected(ReceivedMessageEventArgs e)
         {
             if (clientDisconnectedEvent != null)
                 clientDisconnectedEvent(this, e);
@@ -63,8 +70,44 @@ namespace Gurkenplayer
         /// <param name="e"></param>
         public virtual void OnServerLeftProcessingMessageThread(EventArgs e)
         {
-            if (serverLeftProcessingMessageThread != null)
-                serverLeftProcessingMessageThread(this, e);
+            if (serverLeftProcessingMessageThreadEvent != null)
+                serverLeftProcessingMessageThreadEvent(this, e);
+        }
+        /// <summary>
+        /// Fires whenn all clients disconnected from the server.
+        /// </summary>
+        /// <param name="e"></param>
+        public virtual void OnAllClientsDisconnected(ReceivedMessageEventArgs e)
+        {
+            if (allClientsDissconectedEvent != null)
+                allClientsDissconectedEvent(this, e);
+        }
+        /// <summary>
+        /// Fires when a connection request of a client has been approved.
+        /// </summary>
+        /// <param name="e"></param>
+        public virtual void OnClientConnectionRequestApproved(ConnectionRequestEventArgs e)
+        {
+            if (clientConnectionRequestApprovedEvent != null)
+                clientConnectionRequestApprovedEvent(this, e);
+        }
+        /// <summary>
+        /// Fires when a connection request of a client has been denied.
+        /// </summary>
+        /// <param name="e"></param>
+        public virtual void OnClientConenctionRequestDenied(ConnectionRequestEventArgs e)
+        {
+            if (clientConnectionRequestDeniedEvent != null)
+                clientConnectionRequestDeniedEvent(this, e);
+        }
+        /// <summary>
+        /// Fires when a message arrived which type is not handled by the application.
+        /// </summary>
+        /// <param name="e">Information about the unhandled message.</param>
+        public virtual void OnReceivedHandledMessage(ReceivedUnknownMessageEventArgs e)
+        {
+            if (unhandledMessageReceivedEvent != null)
+                unhandledMessageReceivedEvent(this, e);
         }
         #endregion
 
@@ -112,6 +155,14 @@ namespace Gurkenplayer
         {
             get { return serverMaximumPlayerAmount; }
             set { serverMaximumPlayerAmount = value; }
+        }
+
+        /// <summary>
+        /// Returns the current amount of connections.
+        /// </summary>
+        public int ConnectionsCount
+        {
+            get { return netServer.ConnectionsCount; }
         }
 
         /// <summary>
@@ -322,15 +373,15 @@ namespace Gurkenplayer
                                 NetConnectionStatus state = (NetConnectionStatus)msg.ReadByte();
                                 if (state == NetConnectionStatus.Connected)
                                 {
-                                    OnClientConnected(EventArgs.Empty);
-                                    Log.Message("Client connected. Client IP: " + msg.SenderEndPoint);
-                                    Log.Error("ConnectionsCount new connected:::" + netServer.ConnectionsCount.ToString());
+                                    OnClientConnected(new ReceivedMessageEventArgs(msg));
                                 }
                                 else if (state == NetConnectionStatus.Disconnected || state == NetConnectionStatus.Disconnecting)
                                 {
-                                    OnClientDisconnected(EventArgs.Empty);
-                                    Log.Message("Client disconnected. Client IP: " + msg.SenderEndPoint);
-                                    Log.Error("ConnectionsCount new disconnect:::" + netServer.ConnectionsCount.ToString());
+                                    OnClientDisconnected(new ReceivedMessageEventArgs(msg));
+                                    if (netServer.ConnectionsCount == 0)
+                                    {
+                                        OnAllClientsDisconnected(new ReceivedMessageEventArgs(msg));
+                                    }
                                 }
                                 break;
                             #endregion
@@ -362,29 +413,30 @@ namespace Gurkenplayer
                                         if (PluginManager.instance.enabledModCount == sentEnabledModCount)
                                         {   // The client and server have the same amount of mods enabled
                                             msg.SenderConnection.Approve();
-                                            Log.Warning("User (" + sentUsername + ") approved.");
+                                            OnClientConnectionRequestApproved(new ConnectionRequestEventArgs(msg, "User accepted", sentUsername, sentPassword));
                                         }
                                         else
                                         {
                                             msg.SenderConnection.Deny();
-                                            Log.Warning(String.Format("User ({0}) denied. The user has a different amount of mods enabled. User: {1}; Server: {2}", sentUsername, sentEnabledModCount, PluginManager.instance.enabledModCount));                                        }
+                                            OnClientConenctionRequestDenied(new ConnectionRequestEventArgs(msg, String.Format("Denied: Different amount of mods activated. User: {0}; Server: {1}", sentEnabledModCount, PluginManager.instance.enabledModCount), sentUsername, sentPassword));
+                                        }
                                     }
                                     else
                                     {
                                         msg.SenderConnection.Deny();
-                                        Log.Warning(String.Format("User ({0}) denied. Wrong password.", sentUsername));
+                                        OnClientConenctionRequestDenied(new ConnectionRequestEventArgs(msg, "Denied: Wrong password.", sentUsername, sentPassword));
                                     }
                                 }
                                 else
                                 {
                                     msg.SenderConnection.Deny();
-                                    Log.Warning(String.Format("User ({0}) denied. Game is full.", sentUsername));
+                                    OnClientConenctionRequestDenied(new ConnectionRequestEventArgs(msg, "Denied: Game is full/Cannot accept any more connections.", sentUsername, sentPassword));
                                 }
                                 break;
                             #endregion
 
                             default:
-                                Log.Warning(String.Format("Server ProcessMessage: Unhandled Type: {0}", msg.MessageType));
+                                OnReceivedHandledMessage(new ReceivedUnknownMessageEventArgs(msg, msg.MessageType.ToString()));
                                 break;
                         }
                     }
@@ -400,7 +452,6 @@ namespace Gurkenplayer
             }
             finally
             {
-                Log.Warning("Leaving Server processmessage");
                 IsServerStarted = false;
                 StopMessageProcessingThread.Condition = false;
                 OnServerLeftProcessingMessageThread(new EventArgs());
@@ -420,8 +471,6 @@ namespace Gurkenplayer
                 case MPMessageType.MoneyUpdate: // Receiving money
                     EcoExtBase.MPCashChangeAmount += msg.ReadInt64();
                     // EcoExtBase.MPInternalMoneyAmount -= EcoExtBase.MPCashChangeAmount;
-                    // EcoExtBase._CurrentMoneyAmount = msg.ReadInt64();
-                    // EcoExtBase._InternalMoneyAmount = msg.ReadInt64();
                     break;
                 case MPMessageType.DemandUpdate: // Receiving demand
                     DemandExtBase.MPCommercialDemand = msg.ReadInt32();
@@ -443,7 +492,7 @@ namespace Gurkenplayer
                     CitizenManager.instance.m_citizenCount = msg.ReadInt32();
                     break;
                 default:
-                    Log.Warning(String.Format("Server ProgressData: Unhandled ID/type: {0}/{1} ", (int)msgType, msgType));
+                    OnReceivedHandledMessage(new ReceivedUnknownMessageEventArgs(msg, msgType.ToString()));
                     break;
             }
         }
@@ -529,6 +578,17 @@ namespace Gurkenplayer
             }
         }
 
+        public void SendBuildingAddedInformationUpdateToAll()
+        {
+            if (CanSendMessage)
+            {
+                NetOutgoingMessage msg = netServer.CreateMessage();
+                msg.Write((int)MPMessageType.BuildingAddedUpdate);
+                msg.Write(ConvertionHelper.ConvertToByteArray(SkylinesOverwatch.Data.Instance.BuildingsAdded));
+
+            }
+        }
+
         public void SendBuildingRemovalInformationUpdateToAll()
         {
             if (CanSendMessage)
@@ -537,24 +597,6 @@ namespace Gurkenplayer
                 msg.Write((int)MPMessageType.BuildingRemovalUpdate);
                 //Go on. Need to convert Data.Instance.BuildingsRemoved to byte[]
             }
-        }
-
-        public byte[] ConvertToByteArray(ushort[] shortArr)
-        {
-            bool isLittleEndian = true;
-            byte[] data = new byte[shortArr.Length * 8];
-            int offset = 0;
-            foreach (ushort value in shortArr)
-            {
-                byte[] buffer = BitConverter.GetBytes(value);
-                if (BitConverter.IsLittleEndian != isLittleEndian)
-                {
-                    Array.Reverse(buffer);
-                }
-                buffer.CopyTo(data, offset);
-                offset += 8;
-            }
-            return data;
         }
     }
 }
