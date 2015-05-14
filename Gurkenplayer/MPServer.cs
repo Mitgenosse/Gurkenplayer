@@ -12,21 +12,21 @@ namespace Gurkenplayer
 {
     public delegate void ServerEventHandler(object sender, EventArgs e);
     public delegate void ServerReceivedMessageEventHandler(object sender, ReceivedMessageEventArgs e);
-    public delegate void ServerReceivedUnhandledMessageEventHandler(object sender, ReceivedUnknownMessageEventArgs e);
+    public delegate void ServerReceivedUnhandledMessageEventHandler(object sender, ReceivedUnhandledMessageEventArgs e);
     public delegate void ServerConnectionRequestEventHandler(object sender, ConnectionRequestEventArgs e);
     public class MPServer : IDisposable
     {
         //Event stuff
         #region Events and Eventmethods
-        public event ServerEventHandler serverStartedEvent;
-        public event ServerEventHandler serverStoppedEvent;
-        public event ServerReceivedMessageEventHandler clientConnectedEvent;
-        public event ServerReceivedMessageEventHandler clientDisconnectedEvent;
-        public event ServerEventHandler serverLeftProcessingMessageThreadEvent;
-        public event ServerReceivedMessageEventHandler allClientsDissconectedEvent;
-        public event ServerConnectionRequestEventHandler clientConnectionRequestApprovedEvent;
-        public event ServerConnectionRequestEventHandler clientConnectionRequestDeniedEvent;
-        public event ServerReceivedUnhandledMessageEventHandler unhandledMessageReceivedEvent;
+        public event ServerEventHandler serverStarted;
+        public event ServerEventHandler serverStopped;
+        public event ServerReceivedMessageEventHandler clientConnected;
+        public event ServerReceivedMessageEventHandler clientDisconnected;
+        public event ServerEventHandler serverLeavingProcessingMessageThread;
+        public event ServerReceivedMessageEventHandler allClientsDisconected;
+        public event ServerConnectionRequestEventHandler clientConnectionRequestApproved;
+        public event ServerConnectionRequestEventHandler clientConnectionRequestDenied;
+        public event ServerReceivedUnhandledMessageEventHandler unhandledMessageReceived;
 
         /// <summary>
         /// Fires when the netServer is 100% started.
@@ -34,8 +34,8 @@ namespace Gurkenplayer
         /// <param name="e"></param>
         public virtual void OnServerStarted(EventArgs e)
         {
-            if (serverStartedEvent != null)
-                serverStartedEvent(this, e);
+            if (serverStarted != null)
+                serverStarted(this, e);
         }
         /// <summary>
         /// Fires when the netServer is 100% stopped.
@@ -43,8 +43,8 @@ namespace Gurkenplayer
         /// <param name="e"></param>
         public virtual void OnServerStopped(EventArgs e)
         {
-            if (serverStoppedEvent != null)
-                serverStoppedEvent(this, e);
+            if (serverStopped != null)
+                serverStopped(this, e);
         }
         /// <summary>
         /// Fired when a new client connected.
@@ -52,8 +52,8 @@ namespace Gurkenplayer
         /// <param name="e"></param>
         public virtual void OnClientConnected(ReceivedMessageEventArgs e)
         {
-            if (clientConnectedEvent != null)
-                clientConnectedEvent(this, e);
+            if (clientConnected != null)
+                clientConnected(this, e);
         }
         /// <summary>
         /// Fired when a client disconnected.
@@ -61,17 +61,17 @@ namespace Gurkenplayer
         /// <param name="e"></param>
         public virtual void OnClientDisconnected(ReceivedMessageEventArgs e)
         {
-            if (clientDisconnectedEvent != null)
-                clientDisconnectedEvent(this, e);
+            if (clientDisconnected != null)
+                clientDisconnected(this, e);
         }
         /// <summary>
         /// Fires when the ProcessMessage thread is about to end.
         /// </summary>
         /// <param name="e"></param>
-        public virtual void OnServerLeftProcessingMessageThread(EventArgs e)
+        public virtual void OnServerLeavingProcessingMessageThread(EventArgs e)
         {
-            if (serverLeftProcessingMessageThreadEvent != null)
-                serverLeftProcessingMessageThreadEvent(this, e);
+            if (serverLeavingProcessingMessageThread != null)
+                serverLeavingProcessingMessageThread(this, e);
         }
         /// <summary>
         /// Fires whenn all clients disconnected from the server.
@@ -79,8 +79,8 @@ namespace Gurkenplayer
         /// <param name="e"></param>
         public virtual void OnAllClientsDisconnected(ReceivedMessageEventArgs e)
         {
-            if (allClientsDissconectedEvent != null)
-                allClientsDissconectedEvent(this, e);
+            if (allClientsDisconected != null)
+                allClientsDisconected(this, e);
         }
         /// <summary>
         /// Fires when a connection request of a client has been approved.
@@ -88,8 +88,8 @@ namespace Gurkenplayer
         /// <param name="e"></param>
         public virtual void OnClientConnectionRequestApproved(ConnectionRequestEventArgs e)
         {
-            if (clientConnectionRequestApprovedEvent != null)
-                clientConnectionRequestApprovedEvent(this, e);
+            if (clientConnectionRequestApproved != null)
+                clientConnectionRequestApproved(this, e);
         }
         /// <summary>
         /// Fires when a connection request of a client has been denied.
@@ -97,17 +97,17 @@ namespace Gurkenplayer
         /// <param name="e"></param>
         public virtual void OnClientConenctionRequestDenied(ConnectionRequestEventArgs e)
         {
-            if (clientConnectionRequestDeniedEvent != null)
-                clientConnectionRequestDeniedEvent(this, e);
+            if (clientConnectionRequestDenied != null)
+                clientConnectionRequestDenied(this, e);
         }
         /// <summary>
         /// Fires when a message arrived which type is not handled by the application.
         /// </summary>
         /// <param name="e">Information about the unhandled message.</param>
-        public virtual void OnReceivedHandledMessage(ReceivedUnknownMessageEventArgs e)
+        public virtual void OnReceivedUnhandledMessage(ReceivedUnhandledMessageEventArgs e)
         {
-            if (unhandledMessageReceivedEvent != null)
-                unhandledMessageReceivedEvent(this, e);
+            if (unhandledMessageReceived != null)
+                unhandledMessageReceived(this, e);
         }
         #endregion
 
@@ -436,7 +436,7 @@ namespace Gurkenplayer
                             #endregion
 
                             default:
-                                OnReceivedHandledMessage(new ReceivedUnknownMessageEventArgs(msg, msg.MessageType.ToString()));
+                                OnReceivedUnhandledMessage(new ReceivedUnhandledMessageEventArgs(msg, msg.MessageType.ToString()));
                                 break;
                         }
                     }
@@ -454,7 +454,7 @@ namespace Gurkenplayer
             {
                 IsServerStarted = false;
                 StopMessageProcessingThread.Condition = false;
-                OnServerLeftProcessingMessageThread(new EventArgs());
+                OnServerLeavingProcessingMessageThread(new EventArgs());
             }
         }
         
@@ -492,7 +492,7 @@ namespace Gurkenplayer
                     CitizenManager.instance.m_citizenCount = msg.ReadInt32();
                     break;
                 default:
-                    OnReceivedHandledMessage(new ReceivedUnknownMessageEventArgs(msg, msgType.ToString()));
+                    OnReceivedUnhandledMessage(new ReceivedUnhandledMessageEventArgs(msg, msgType.ToString()));
                     break;
             }
         }

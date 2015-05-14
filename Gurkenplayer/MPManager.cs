@@ -193,13 +193,13 @@ namespace Gurkenplayer
 
             Log.Message("Initialize server.");
             MPServer = new MPServer(StopProcessMessageThread);
-            MPServer.serverLeftProcessingMessageThreadEvent += MPServer_serverLeftProcessingMessageThreadEvent;
-            MPServer.unhandledMessageReceivedEvent += MPServer_unhandledMessageReceivedEvent;
-            MPServer.clientConnectedEvent += MPServer_clientConnectedEvent;
-            MPServer.clientDisconnectedEvent += MPServer_clientDisconnectedEvent;
-            MPServer.allClientsDissconectedEvent += MPServer_allClientsDissconectedEvent;
-            MPServer.clientConnectionRequestApprovedEvent += MPServer_clientConnectionRequestApprovedEvent;
-            MPServer.clientConnectionRequestDeniedEvent += MPServer_clientConnectionRequestDeniedEvent;
+            MPServer.serverLeavingProcessingMessageThread += MPServer_serverLeavingProcessingMessageThreadEvent;
+            MPServer.unhandledMessageReceived += MPServer_unhandledMessageReceivedEvent;
+            MPServer.clientConnected += MPServer_clientConnectedEvent;
+            MPServer.clientDisconnected += MPServer_clientDisconnectedEvent;
+            MPServer.allClientsDisconected += MPServer_allClientsDissconectedEvent;
+            MPServer.clientConnectionRequestApproved += MPServer_clientConnectionRequestApprovedEvent;
+            MPServer.clientConnectionRequestDenied += MPServer_clientConnectionRequestDeniedEvent;
             SetMPRole(MPRoleType.Server);
             Log.Message("Server initialized.");
         }
@@ -317,7 +317,7 @@ namespace Gurkenplayer
         /// </summary>
         /// <param name="sender">MPServer instance.</param>
         /// <param name="e"></param>
-        void MPServer_serverLeftProcessingMessageThreadEvent(object sender, EventArgs e)
+        void MPServer_serverLeavingProcessingMessageThreadEvent(object sender, EventArgs e)
         {
             Log.Message("Left Server message processing thread!");
             IsProcessMessageThreadRunning = false;
@@ -328,7 +328,7 @@ namespace Gurkenplayer
         /// </summary>
         /// <param name="sender">MPServer object.</param>
         /// <param name="e">Information about the unhandled object.</param>
-        void MPServer_unhandledMessageReceivedEvent(object sender, ReceivedUnknownMessageEventArgs e)
+        void MPServer_unhandledMessageReceivedEvent(object sender, ReceivedUnhandledMessageEventArgs e)
         {
             Log.Warning(String.Format("Server: Unhandled MessageType/SubType: {0}/{1} ", e.Message.MessageType, e.Type));
         }
@@ -402,12 +402,14 @@ namespace Gurkenplayer
 
             Log.Message("Initializing client.");
             MPClient = new MPClient(StopProcessMessageThread);
-            MPClient.clientLeftProcessMessageThread += MPClient_clientLeftProcessMessageThread;
-            MPClient.clientConnectedEvent += MPClient_clientConnectedEvent;
-            MPClient.clientDisconnectedEvent += MPClient_clientDisconnectedEvent;
+            MPClient.clientLeavingProcessMessageThread += MPClient_clientLeavingProcessMessageThread;
+            MPClient.clientConnected += MPClient_clientConnectedEvent;
+            MPClient.clientDisconnected += MPClient_clientDisconnectedEvent;
+            mpClient.receivedUnhandledMessage += mpClient_receivedUnhandledMessage;
             SetMPRole(MPRoleType.Client);
             Log.Message("Client initialized.");
         }
+
         /// <summary>
         /// Uninitializes the MPClient. Sets it to null.
         /// </summary>
@@ -514,19 +516,43 @@ namespace Gurkenplayer
 
         // Client Events
         #region Client Events
-        void MPClient_clientLeftProcessMessageThread(object sender, EventArgs e)
+        /// <summary>
+        /// Fires when the process message thread is about to leave.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        void MPClient_clientLeavingProcessMessageThread(object sender, EventArgs e)
         {
             Log.Message("Left Client message processing thread!");
             IsProcessMessageThreadRunning = false;
             ClientUninitialize();
         }
+        /// <summary>
+        /// Fires when the client connected.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         void MPClient_clientConnectedEvent(object sender, ReceivedMessageEventArgs e)
         {
             Log.Message("You connected. Client IP: " + e.Message.SenderEndPoint);
         }
+        /// <summary>
+        /// Fires when the client disconnected from the server.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         void MPClient_clientDisconnectedEvent(object sender, ReceivedMessageEventArgs e)
         {
             Log.Message("You disconnected. Client IP: " + e.Message.SenderEndPoint);
+        }
+        /// <summary>
+        /// Fires when the client received an unhandled message.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        void mpClient_receivedUnhandledMessage(object sender, ReceivedUnhandledMessageEventArgs e)
+        {
+            Log.Warning(String.Format("Client: Unhandled MessageType/SubType: {0}/{1} ", e.Message.MessageType, e.Type));
         }
         #endregion
         #endregion

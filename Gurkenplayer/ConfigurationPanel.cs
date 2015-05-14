@@ -358,8 +358,8 @@ namespace Gurkenplayer
             mpManager.ServerInitialize();
             if (mpManager.IsMPServerInitialized)
             {
-                mpManager.MPServer.clientConnectedEvent += MPServer_clientConnectedEvent;
-                mpManager.MPServer.serverStoppedEvent += MPServer_serverStoppedEvent;
+                mpManager.MPServer.clientConnected += MPServer_clientConnectedEvent;
+                mpManager.MPServer.serverStopped += MPServer_serverStoppedEvent;
                 try
                 {
                     Log.Message(String.Format("Trying to start a lobby on port {0} with the username {1} and password {2}", txt_ClientPort.text, txt_Username.text, txt_Password.text));
@@ -394,8 +394,8 @@ namespace Gurkenplayer
             mpManager.ClientInitialize();
             if (mpManager.IsMPClientInitialized)
             {
-                mpManager.MPClient.clientConnectedEvent += MPClient_clientConnectedEvent;
-                mpManager.MPClient.clientDisconnectedEvent += MPClient_clientDisconnectedEvent;
+                mpManager.MPClient.clientConnected += MPClient_clientConnectedEvent;
+                mpManager.MPClient.clientDisconnected += MPClient_clientDisconnectedEvent;
                 try
                 {
                     Log.Message(String.Format("Trying to connect to {0}:{1} with the username _{2}_ and password _{3}_", txt_ClientIP.text, txt_ClientPort.text, txt_Username.text, txt_Password.text));

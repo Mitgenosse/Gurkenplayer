@@ -31,7 +31,7 @@ namespace Gurkenplayer
     /// <summary>
     /// EventArgs providing information for the events inside the ProcessMessage method.
     /// </summary>
-    public class ReceivedUnknownMessageEventArgs : EventArgs
+    public class ReceivedUnhandledMessageEventArgs : EventArgs
     {
         // Fields
         NetIncomingMessage msg;
@@ -49,7 +49,7 @@ namespace Gurkenplayer
         }
 
         // Constructor
-        public ReceivedUnknownMessageEventArgs(NetIncomingMessage msg, string type)
+        public ReceivedUnhandledMessageEventArgs(NetIncomingMessage msg, string type)
         {
             this.msg = msg;
             this.type = type;

@@ -15,13 +15,15 @@ namespace Gurkenplayer
 {
     public delegate void ClientEventHandler(object sender, EventArgs e);
     public delegate void ClientReceivedMessageEventHandler(object sender, ReceivedMessageEventArgs e);
+    public delegate void ClientReceivedUnhandledMessageEventHandler(object sender, ReceivedUnhandledMessageEventArgs e);
     public class MPClient : IDisposable
     {
         // Event stuff
         #region Events and Eventmethods
-        public event ClientReceivedMessageEventHandler clientConnectedEvent;
-        public event ClientReceivedMessageEventHandler clientDisconnectedEvent;
-        public event ClientEventHandler clientLeftProcessMessageThread;
+        public event ClientReceivedMessageEventHandler clientConnected;
+        public event ClientReceivedMessageEventHandler clientDisconnected;
+        public event ClientEventHandler clientLeavingProcessMessageThread;
+        public event ClientReceivedUnhandledMessageEventHandler receivedUnhandledMessage;
 
         //EventMethods
         /// <summary>
@@ -30,8 +32,8 @@ namespace Gurkenplayer
         /// <param name="e"></param>
         public virtual void OnClientConnected(ReceivedMessageEventArgs e)
         {
-            if (clientConnectedEvent != null)
-                clientConnectedEvent(this, e);
+            if (clientConnected != null)
+                clientConnected(this, e);
         }
         /// <summary>
         /// Fires when the client is 100% disconnected.
@@ -39,17 +41,26 @@ namespace Gurkenplayer
         /// <param name="e"></param>
         public virtual void OnClientDisconnected(ReceivedMessageEventArgs e)
         {
-            if (clientDisconnectedEvent != null)
-                clientDisconnectedEvent(this, e);
+            if (clientDisconnected != null)
+                clientDisconnected(this, e);
         }
         /// <summary>
         /// Fires when the ProcessMessage thread is right about to fly into nonexistence.
         /// </summary>
         /// <param name="e"></param>
-        public virtual void OnClientLeftProcessMessageThread(EventArgs e)
+        public virtual void OnClientLeavingProcessMessageThread(EventArgs e)
         {
-            if (clientLeftProcessMessageThread != null)
-                clientLeftProcessMessageThread(this, e);
+            if (clientLeavingProcessMessageThread != null)
+                clientLeavingProcessMessageThread(this, e);
+        }
+        /// <summary>
+        /// Fires when the client received an unhandled message.
+        /// </summary>
+        /// <param name="e"></param>
+        public virtual void OnClientReceivedUnhandledMessage(ReceivedUnhandledMessageEventArgs e)
+        {
+            if (receivedUnhandledMessage != null)
+                receivedUnhandledMessage(this, e);
         }
         #endregion
 
@@ -358,7 +369,7 @@ namespace Gurkenplayer
                             #endregion
 
                             default:
-                                Log.Warning(String.Format("Client ProcessMessage: Unhandled type: {0}", msg.MessageType));
+                                OnClientReceivedUnhandledMessage(new ReceivedUnhandledMessageEventArgs(msg, msg.MessageType.ToString()));
                                 break;
                         }
                     }
@@ -376,7 +387,7 @@ namespace Gurkenplayer
             {
                 IsClientConnected = false;
                 StopMessageProcessingThread.Condition = false;
-                OnClientLeftProcessMessageThread(EventArgs.Empty);
+                OnClientLeavingProcessMessageThread(EventArgs.Empty);
             }
         }
         
@@ -414,7 +425,7 @@ namespace Gurkenplayer
                     CitizenManager.instance.m_citizenCount = msg.ReadInt32();
                     break;
                 default: // Unhandled ID (MPMessageType)
-                    Log.Warning(String.Format("Client ProgressData: Unhandled ID/type: {0}/{1} ", (int)msgType, msgType));
+                    OnClientReceivedUnhandledMessage(new ReceivedUnhandledMessageEventArgs(msg, msgType.ToString()));
                     break;
             }
         }

@@ -56,9 +56,18 @@ namespace Gurkenplayer
             }
             return data;
         }
+        /// <summary>
+        /// Converts an serializable object to a byte array.
+        /// </summary>
+        /// <param name="obj">Object to convert/serialize.</param>
+        /// <returns>A byte array of the object.</returns>
         public static byte[] ConvertToByteArray(object obj)
         {
             if (obj == null)
+                return null;
+
+            // If object is not serializable, return null.
+            if (!obj.GetType().IsSerializable)
                 return null;
 
             BinaryFormatter bf = new BinaryFormatter();
@@ -68,6 +77,11 @@ namespace Gurkenplayer
                 return ms.ToArray();
             }
         }
+        /// <summary>
+        /// Converts a byte array to a object.
+        /// </summary>
+        /// <param name="byteObjectArr">Bytearray of object.</param>
+        /// <returns>The deserialized object.</returns>
         public static object DeserializeObject(byte[] byteObjectArr)
         {
             if (byteObjectArr == null)
