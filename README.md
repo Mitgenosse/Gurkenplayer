@@ -1,5 +1,5 @@
-# Gurkenplayer - Cities: Skylines modification
-Welcome to my first modification. The name of the mod will likely change.
+# CSL-Coop - Cities: Skylines modification
+This project is originally forked from Gurkenschreck/Gurkenplayer.
 
 I am trying to build a coop multiplayer mode for Cities: Skyline.
 If you want to help me, then do it. :)
