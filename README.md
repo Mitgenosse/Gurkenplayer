@@ -1,12 +1,12 @@
 # CSL-Coop - Cities: Skylines modification
 This project is originally forked from Gurkenschreck/Gurkenplayer. Special thanks goes to Mario Giugno who initialy created this mod.
 
-I am trying to build a coop multiplayer mode for Cities: Skyline.
-If you want to help me, then do it. :)
+I am trying to build a coop multiplayer mode for Cities Skylines.
+If you want to help me, then please do it. :)
 
 ---
 
-<b>Already done:</b>
+<b>Already done: (Thanks to Gurkenschreck)</b>
 * Setting up server and client socket (using Lidgren.Networking.dll (MIT license), thanks Lidgren!).
 * It should synchronize money, area demand (commercial, residental, industrial), bought tiles.
 
@@ -14,6 +14,11 @@ If you want to help me, then do it. :)
 * Create an UI on map start.
 * Synchronize more stuff.
 * (And bug fixes)
+
+<b>Currently working:</b>
+* Join MPServer
+* Synchronize gamespeed
+* Synchronize money (not income)
 
 <b>Current procedure (not final):</b></br>
 * Start the same map.
