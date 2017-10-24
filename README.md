@@ -26,10 +26,10 @@ I do not know if the simulation speed should be changeable. I have to overthink 
 # How to test...
 
 You can clone the repository and compile it, it should not throw any errors. 
-To run the mod, you have to copy the provided Lidgren.Network.dll and SkylinesOverwatch.dll in the Managed_dlls folder into the same folder as the Gurkenplayer.dll.
-Copy the Gurkenplayer.dll and the Lidgren.Network.dll and SkylinesOverwatch.dll and place it into the following path:
+To run the mod, you have to copy the provided Lidgren.Network.dll and SkylinesOverwatch.dll in the Managed_dlls folder into the same folder as the CSLCoop.dll.
+Copy the CSLCoop.dll and the Lidgren.Network.dll and SkylinesOverwatch.dll and place it into the following path:
 
-<b>%localappdata%\Colossal Order\Cities_Skylines\Addons\Mods\Gurkenplayer</b>
+<b>%localappdata%\Colossal Order\Cities_Skylines\Addons\Mods\CSLCoop</b>
 
 Now you can test the mod. :)
 
