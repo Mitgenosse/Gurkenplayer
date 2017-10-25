@@ -1,4 +1,7 @@
 # CSL-Coop - Cities: Skylines modification
+
+[![license](https://img.shields.io/github/license/mashape/apistatus.svg)](https://raw.githubusercontent.com/Override92/CSL-Coop/master/LICENSE.md)
+
 This project is originally forked from Gurkenschreck/Gurkenplayer. Special thanks goes to Mario Giugno who initialy created this mod.
 
 I am trying to build a coop multiplayer mode for Cities Skylines.
