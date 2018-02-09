@@ -1,12 +1,15 @@
-# Gurkenplayer - Cities: Skylines modification
-Welcome to my first modification. The name of the mod will likely change.
+# CSL-Coop - Cities: Skylines modification
 
-I am trying to build a coop multiplayer mode for Cities: Skyline.
-If you want to help me, then do it. :)
+[![license](https://img.shields.io/github/license/mashape/apistatus.svg)](https://raw.githubusercontent.com/Override92/CSL-Coop/master/LICENSE.md)
+
+This project is originally forked from Gurkenschreck/Gurkenplayer. Special thanks goes to Mario Giugno who initialy created this mod.
+
+I am trying to build a coop multiplayer mode for Cities Skylines.
+If you want to help me, then please do it. :)
 
 ---
 
-<b>Already done:</b>
+<b>Already done: (Thanks to Gurkenschreck)</b>
 * Setting up server and client socket (using Lidgren.Networking.dll (MIT license), thanks Lidgren!).
 * It should synchronize money, area demand (commercial, residental, industrial), bought tiles.
 
@@ -14,6 +17,11 @@ If you want to help me, then do it. :)
 * Create an UI on map start.
 * Synchronize more stuff.
 * (And bug fixes)
+
+<b>Currently working:</b>
+* Join MPServer
+* Synchronize gamespeed
+* Synchronize money (not income)
 
 <b>Current procedure (not final):</b></br>
 * Start the same map.
@@ -26,10 +34,10 @@ I do not know if the simulation speed should be changeable. I have to overthink 
 # How to test...
 
 You can clone the repository and compile it, it should not throw any errors. 
-To run the mod, you have to copy the provided Lidgren.Network.dll and SkylinesOverwatch.dll in the Managed_dlls folder into the same folder as the Gurkenplayer.dll.
-Copy the Gurkenplayer.dll and the Lidgren.Network.dll and SkylinesOverwatch.dll and place it into the following path:
+To run the mod, you have to copy the provided Lidgren.Network.dll and SkylinesOverwatch.dll in the Managed_dlls folder into the same folder as the CSLCoop.dll.
+Copy the CSLCoop.dll and the Lidgren.Network.dll and SkylinesOverwatch.dll and place it into the following path:
 
-<b>%localappdata%\Colossal Order\Cities_Skylines\Addons\Mods\Gurkenplayer</b>
+<b>%localappdata%\Colossal Order\Cities_Skylines\Addons\Mods\CSLCoop</b>
 
 Now you can test the mod. :)
 
